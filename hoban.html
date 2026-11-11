@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hoban Baseball Offseason Tracker</title>
+<style>
+  :root{
+    --bg:#f3f4f7; --card:#ffffff; --ink:#15201a; --ink2:#4a564f; --muted:#7b857f;
+    --line:#dfe3df; --accent:#063156; --accent2:#0d4a7e; --accentSoft:#e3eaf2;
+    --gold:#ca9620; --goldSoft:#f8efd8; --bad:#b3261e; --badSoft:#fbe9e7; --good:#1f7a45;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;-webkit-text-size-adjust:100%}
+  button,input,select,textarea{font:inherit;color:inherit}
+  header{background:var(--accent);color:#fff;padding:14px 16px 0;position:sticky;top:0;z-index:20}
+  header .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  header h1{font-size:18px;margin:0;letter-spacing:.2px;line-height:1.15}
+  header h1 span{display:block;font-size:13px;font-weight:600;color:var(--gold);letter-spacing:.6px;text-transform:uppercase}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand img{height:48px;width:auto;display:block}
+  header .who{font-size:13px;opacity:.85;text-align:right}
+  nav{display:flex;gap:2px;margin-top:10px;overflow-x:auto}
+  nav button{flex:1;background:none;border:0;color:#ffffffb0;padding:10px 6px 12px;font-size:14px;font-weight:600;border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+  nav button.on{color:#fff;border-bottom-color:var(--gold)}
+  main{max-width:760px;margin:0 auto;padding:14px 12px 80px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+  .card h2{font-size:16px;margin:0 0 10px}
+  .card h3{font-size:14px;margin:14px 0 8px;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px}
+  .sub{color:var(--muted);font-size:13px;margin:-4px 0 10px}
+  .seg{display:flex;background:#e7eae6;border-radius:12px;padding:3px;margin-bottom:12px}
+  .seg button{flex:1;border:0;background:none;padding:10px;border-radius:9px;font-weight:700;cursor:pointer;color:var(--ink2)}
+  .seg button.on{background:#fff;color:var(--accent);box-shadow:0 1px 3px #0002}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink2);font-weight:600}
+  label.f input,label.f select,label.f textarea{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;font-size:16px;font-weight:400;color:var(--ink);width:100%}
+  label.f input[readonly]{background:#f3f5f3}
+  textarea{min-height:70px;resize:vertical}
+  .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff}
+  .btn.full{width:100%;padding:15px;font-size:17px}
+  .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+  .btn.light{background:#eef1ee;color:var(--ink)}
+  .btn.danger{background:var(--bad)}
+  .btn.sm{padding:8px 12px;font-size:14px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .spread{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  /* tap counter */
+  .types{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .chipbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 13px;font-weight:700;font-size:14px;cursor:pointer}
+  .chipbtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chipbtn.gold.on{background:var(--gold);border-color:var(--gold)}
+  .bigtap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .bigtap button{border:0;border-radius:16px;padding:26px 8px;font-size:22px;font-weight:800;cursor:pointer;color:#fff;touch-action:manipulation;user-select:none}
+  .bigtap button:active{transform:scale(.97)}
+  .tapS{background:var(--accent)} .tapB{background:#6b6f6c}
+  .tapgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .tapgrid button{border:0;border-radius:14px;padding:18px 4px;font-size:16px;font-weight:800;cursor:pointer;background:var(--accentSoft);color:var(--accent);touch-action:manipulation}
+  .tapgrid button.miss{background:#eceeed;color:var(--ink2)}
+  .tapgrid button:active{transform:scale(.96)}
+  .count{display:flex;gap:14px;justify-content:center;align-items:center;margin:10px 0;font-weight:800;font-size:15px}
+  .count .dot{display:inline-block;width:13px;height:13px;border-radius:50%;border:2px solid var(--ink2);margin:0 2px;vertical-align:-1px}
+  .count .dot.b.fill{background:#6b6f6c;border-color:#6b6f6c}
+  .count .dot.s.fill{background:var(--accent);border-color:var(--accent)}
+  .tally{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .pill{background:#f0f2f0;border-radius:10px;padding:6px 9px;font-size:13px;color:var(--ink2)}
+  .pill b{color:var(--ink)}
+  .live{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+  .stat{background:#f6f7f5;border-radius:12px;padding:9px 6px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+  .drills{display:flex;flex-wrap:wrap;gap:6px}
+  .drillrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .drillrow span{flex:1;font-size:14px;font-weight:600}
+  .drillrow input{width:90px;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:16px}
+  .scale{display:flex;gap:4px}
+  .scale button{flex:1;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 0;font-weight:700;cursor:pointer;font-size:14px}
+  .scale button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .note{background:var(--goldSoft);border-radius:12px;padding:10px 12px;font-size:14px;color:#5a4410;margin-bottom:12px}
+  .warn{background:var(--badSoft);color:#7a1b15}
+  .hist{border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;background:#fff}
+  .hist .t{font-weight:800}
+  .hist .m{font-size:13px;color:var(--muted)}
+  .tag{display:inline-block;font-size:11px;font-weight:800;border-radius:6px;padding:2px 7px;margin-right:6px;vertical-align:1px;letter-spacing:.3px}
+  .tag.mound{background:var(--accentSoft);color:var(--accent)}
+  .tag.cage{background:var(--goldSoft);color:#7a5a10}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .kpi .v{font-size:26px;font-weight:800}
+  .kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+  .chart{position:relative}
+  .chart svg{display:block;width:100%;height:auto;overflow:visible}
+  .tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;padding:6px 8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:5}
+  .empty{color:var(--muted);font-size:14px;padding:16px 4px;text-align:center}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;cursor:pointer}
+  tr.click{cursor:pointer}
+  tr.click:hover td{background:#f6f8f6}
+  .tablewrap{overflow-x:auto;margin:0 -4px}
+  .flag{color:var(--bad);font-weight:800}
+  .modal{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .modal.on{display:flex}
+  .modal .box{background:#fff;border-radius:18px 18px 0 0;padding:18px;width:100%;max-width:560px;max-height:85vh;overflow:auto}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;display:none;z-index:60;max-width:90vw;text-align:center}
+  .hide{display:none!important}
+  .tag.lift{background:#ece8f6;color:#3d2f73}
+  .ex{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;background:#fbfbfc}
+  .ex .exh{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .ex .exh b{font-size:15px}
+  .ex .last{font-size:12px;color:var(--muted);margin:2px 0 6px}
+  .setrow{display:grid;grid-template-columns:28px 1fr 1fr 34px;gap:6px;align-items:center;margin-top:6px}
+  .setrow .n{font-size:13px;color:var(--muted);font-weight:700;text-align:center}
+  .setrow input{border:1px solid var(--line);border-radius:9px;padding:9px;font-size:16px;width:100%;background:#fff}
+  .setrow .x{border:0;background:#eef0f3;border-radius:9px;height:38px;font-weight:800;color:var(--ink2);cursor:pointer}
+  .sethead{display:grid;grid-template-columns:28px 1fr 1fr 34px;gap:6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:6px}
+  .e1rm{font-size:12px;color:var(--accent);font-weight:700;margin-top:6px}
+  .small{font-size:12px;color:var(--muted)}
+  @media (min-width:600px){ .kpis{grid-template-columns:repeat(4,1fr)} }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand"><img src="data:image/png;base64,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" alt="Hoban Knights"><h1>Hoban Baseball<span>Offseason Tracker</span></h1></div>
+    <div class="who" id="whoLabel"></div>
+  </div>
+  <nav id="nav">
+    <button data-view="log" class="on">Log</button>
+    <button data-view="history">History</button>
+    <button data-view="progress">Progress</button>
+    <button data-view="me">Me</button>
+    <button data-view="team">Team</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ LOG ============ -->
+  <section id="v-log">
+    <div class="seg" id="logSeg">
+      <button data-t="mound" class="on">Mound</button>
+      <button data-t="cage">Cage</button>
+      <button data-t="lift">Lift</button>
+    </div>
+
+    <!-- MOUND FORM -->
+    <div id="moundForm">
+      <div class="card">
+        <div class="grid">
+          <label class="f">Date<input type="date" id="m_date"></label>
+          <label class="f">Session type
+            <select id="m_kind">
+              <option>Bullpen</option><option>Flat ground</option><option>Live BP</option>
+              <option>Pro-step / long toss</option><option>Plyo / drill work only</option><option>Catch play</option>
+            </select>
+          </label>
+        </div>
+        <div class="small" id="m_week" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <div class="spread"><h2>Pitch counter</h2><button class="btn light sm" id="m_undo">Undo</button></div>
+        <div class="sub">Pick the pitch, then tap Strike or Ball. Ball-strike count runs like simulated at-bats so first-pitch strikes are tracked too.</div>
+        <div class="types" id="m_types"></div>
+        <div class="count" id="m_count"></div>
+        <div class="bigtap">
+          <button class="tapS" id="m_strike">STRIKE</button>
+          <button class="tapB" id="m_ball">BALL</button>
+        </div>
+        <div class="live" id="m_live"></div>
+        <div class="tally" id="m_tally"></div>
+        <div class="row" style="margin-top:10px"><button class="btn light sm" id="m_newbatter">New batter</button><button class="btn light sm" id="m_clear">Clear counter</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Totals</h2>
+        <div class="sub">Filled in by the counter. If you counted on paper, type them here instead.</div>
+        <div class="grid3">
+          <label class="f">Pitches<input type="number" inputmode="numeric" min="0" id="m_pitches"></label>
+          <label class="f">Strikes<input type="number" inputmode="numeric" min="0" id="m_strikes"></label>
+          <label class="f">Balls<input type="number" readonly id="m_balls"></label>
+        </div>
+        <div class="grid" style="margin-top:10px">
+          <label class="f">Batters (1st pitches)<input type="number" inputmode="numeric" min="0" id="m_fpo"></label>
+          <label class="f">1st-pitch strikes<input type="number" inputmode="numeric" min="0" id="m_fps"></label>
+        </div>
+        <h3>Velocity &amp; distance</h3>
+        <div class="grid3">
+          <label class="f">Max velo (mph)<input type="number" inputmode="decimal" step="0.1" id="m_vmax"></label>
+          <label class="f">Avg velo (mph)<input type="number" inputmode="decimal" step="0.1" id="m_vavg"></label>
+          <label class="f">Long toss max (ft)<input type="number" inputmode="numeric" id="m_ltft"></label>
+        </div>
+        <div class="small" style="margin-top:6px">Leave velo blank if nobody had a gun or Pocket Radar.</div>
+      </div>
+
+      <div class="card">
+        <h2>Drill work</h2>
+        <div class="sub">Tap each drill you did and enter reps or throws.</div>
+        <div class="drills" id="m_drills"></div>
+        <div id="m_drillReps"></div>
+      </div>
+
+      <div class="card">
+        <h2>Arm check</h2>
+        <label class="f">Arm feel after (1 = sore/hurting, 10 = great)</label>
+        <div class="scale" id="m_arm" style="margin:6px 0 12px"></div>
+        <label class="f">Effort level (1 = easy, 10 = max)</label>
+        <div class="scale" id="m_rpe" style="margin-top:6px"></div>
+        <div class="note warn hide" id="m_armWarn" style="margin-top:12px">Arm feel of 4 or lower: stop throwing for today and tell Coach.</div>
+        <label class="f" style="margin-top:12px">Notes<textarea id="m_notes" placeholder="What felt good, what to work on"></textarea></label>
+      </div>
+      <button class="btn full" id="m_save">Save mound session</button>
+    </div>
+
+    <!-- CAGE FORM -->
+    <div id="cageForm" class="hide">
+      <div class="card">
+        <div class="grid">
+          <label class="f">Date<input type="date" id="c_date"></label>
+          <label class="f">Session type
+            <select id="c_kind">
+              <option>Tee</option><option>Front toss</option><option>Soft toss</option>
+              <option>Machine</option><option>Overhand BP</option><option>Live BP</option>
+            </select>
+          </label>
+        </div>
+        <label class="f" style="margin-top:10px">Machine / pitch speed (mph, optional)<input type="number" inputmode="numeric" id="c_mph"></label>
+      </div>
+
+      <div class="card">
+        <div class="spread"><h2>Swing counter</h2><button class="btn light sm" id="c_undo">Undo</button></div>
+        <div class="sub">1. Tap Barrel if you squared it up. 2. Tap the direction. 3. Tap what the ball did. A miss or foul skips direction.</div>
+        <div class="types">
+          <button class="chipbtn gold" id="c_barrel">Barrel</button>
+          <span style="width:8px"></span>
+          <button class="chipbtn" data-dir="P">Pull</button>
+          <button class="chipbtn" data-dir="M">Middle</button>
+          <button class="chipbtn" data-dir="O">Oppo</button>
+        </div>
+        <div class="tapgrid">
+          <button data-res="LD">Line drive</button>
+          <button data-res="GB">Ground ball</button>
+          <button data-res="FB">Fly ball</button>
+          <button data-res="PU">Pop up</button>
+          <button data-res="F" class="miss">Foul / mishit</button>
+          <button data-res="X" class="miss">Swing &amp; miss</button>
+        </div>
+        <div class="live" id="c_live"></div>
+        <div class="row" style="margin-top:10px"><button class="btn light sm" id="c_clear">Clear counter</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Totals</h2>
+        <div class="sub">Filled in by the counter, or type them in.</div>
+        <div class="grid3">
+          <label class="f">Swings<input type="number" inputmode="numeric" id="c_swings"></label>
+          <label class="f">Barrels<input type="number" inputmode="numeric" id="c_barrels"></label>
+          <label class="f">Misses<input type="number" inputmode="numeric" id="c_miss"></label>
+          <label class="f">Line drives<input type="number" inputmode="numeric" id="c_ld"></label>
+          <label class="f">Ground balls<input type="number" inputmode="numeric" id="c_gb"></label>
+          <label class="f">Fly balls<input type="number" inputmode="numeric" id="c_fb"></label>
+          <label class="f">Pop ups<input type="number" inputmode="numeric" id="c_pu"></label>
+          <label class="f">Fouls<input type="number" inputmode="numeric" id="c_foul"></label>
+          <span></span>
+          <label class="f">Pull<input type="number" inputmode="numeric" id="c_pull"></label>
+          <label class="f">Middle<input type="number" inputmode="numeric" id="c_mid"></label>
+          <label class="f">Oppo<input type="number" inputmode="numeric" id="c_oppo"></label>
+        </div>
+        <h3>Exit velo (if known)</h3>
+        <div class="grid">
+          <label class="f">Max EV (mph)<input type="number" inputmode="decimal" step="0.1" id="c_evmax"></label>
+          <label class="f">Avg EV (mph)<input type="number" inputmode="decimal" step="0.1" id="c_evavg"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Drill work</h2>
+        <div class="drills" id="c_drills"></div>
+        <div id="c_drillReps"></div>
+        <label class="f" style="margin-top:12px">Notes<textarea id="c_notes" placeholder="Approach, what clicked, what to fix"></textarea></label>
+      </div>
+      <button class="btn full" id="c_save">Save cage session</button>
+    </div>
+
+    <!-- LIFT FORM -->
+    <div id="liftForm" class="hide">
+      <div class="card">
+        <div class="grid">
+          <label class="f">Date<input type="date" id="l_date"></label>
+          <label class="f">Workout
+            <select id="l_kind"><option>Team lift</option><option>On my own</option><option>Make-up lift</option></select>
+          </label>
+          <label class="f">Body weight (lb, optional)<input type="number" inputmode="decimal" step="0.1" id="l_bw"></label>
+          <label class="f">Effort (1-10)<select id="l_rpe"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Exercises</h2>
+        <div class="sub">Add an exercise, then enter weight and reps for each set. "+ Set" copies your last set so you only change what moved. Leave weight blank for body-weight work like pull-ups.</div>
+        <div class="row">
+          <select id="l_pick" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px;background:#fff"></select>
+          <button class="btn" id="l_add">Add</button>
+        </div>
+        <div class="row hide" id="l_customRow" style="margin-top:8px">
+          <input id="l_custom" placeholder="Exercise name" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px">
+        </div>
+        <div id="l_list"></div>
+        <label class="f" style="margin-top:12px">Notes<textarea id="l_notes" placeholder="How it moved, anything that hurt, what to change next time"></textarea></label>
+      </div>
+      <button class="btn full" id="l_save">Save lift</button>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section id="v-history" class="hide">
+    <div class="seg" id="histSeg">
+      <button data-f="all" class="on">All</button><button data-f="mound">Mound</button><button data-f="cage">Cage</button><button data-f="lift">Lift</button>
+    </div>
+    <div id="histList"></div>
+  </section>
+
+  <!-- ============ PROGRESS ============ -->
+  <section id="v-progress" class="hide">
+    <div id="progressBody"></div>
+  </section>
+
+  <!-- ============ ME ============ -->
+  <section id="v-me" class="hide">
+    <div class="card">
+      <h2>My profile</h2>
+      <div class="grid">
+        <label class="f" style="grid-column:1/-1">Name (first and last)<input id="p_name" autocomplete="name"></label>
+        <label class="f">Grad year<input type="number" inputmode="numeric" id="p_grad" placeholder="2028"></label>
+        <label class="f">Position(s)<input id="p_pos" placeholder="RHP / SS"></label>
+        <label class="f">Bats<select id="p_bats"><option value="">-</option><option>R</option><option>L</option><option>S</option></select></label>
+        <label class="f">Throws<select id="p_throws"><option value="">-</option><option>R</option><option>L</option></select></label>
+      </div>
+      <button class="btn" style="margin-top:12px" id="p_save">Save profile</button>
+    </div>
+    <div class="card">
+      <h2>Auto-sync</h2>
+      <div class="sub">Every session you save is sent to Coach's sheet automatically. If you have no signal, it waits on your phone and sends the next time you open the app.</div>
+      <div class="row"><button class="btn" id="sync_now">Sync now</button></div>
+      <div class="small" id="sync_info" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2>Send my data to Coach</h2>
+      <div class="sub">Not needed when auto-sync is working. Use it if Coach asks, or as a backup: it copies all your sessions as a spreadsheet-ready block.</div>
+      <div class="row">
+        <button class="btn" id="x_copy">Copy my data</button>
+        <button class="btn ghost hide" id="x_dl">Download CSV</button>
+      </div>
+      <div class="small" id="x_info" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2>Team leaderboard</h2>
+      <div class="sub">When Coach sends a leaderboard code, paste it here. Your Progress tab will show where you rank on the team and in your class.</div>
+      <label class="f">Paste leaderboard code<textarea id="lb_text" placeholder="HOBANLB1:..."></textarea></label>
+      <div class="row" style="margin-top:8px"><button class="btn light" id="lb_go">Load leaderboard</button><span class="small" id="lb_info"></span></div>
+    </div>
+    <div class="card">
+      <h2>Backup &amp; restore</h2>
+      <div class="sub">Your log lives only on this phone and this browser. If you switch phones or clear your browser, paste your last copied data here to restore it.</div>
+      <label class="f">Paste copied data<textarea id="r_text" placeholder="Paste the block from 'Copy my data'"></textarea></label>
+      <button class="btn light" style="margin-top:8px" id="r_go">Restore / merge</button>
+    </div>
+    <div class="card">
+      <h2>Tip: put it on your home screen</h2>
+      <div class="sub" style="margin:0">iPhone: Share button, then "Add to Home Screen". Android: menu, then "Add to Home screen". Always open it the same way so your log stays in one place.</div>
+    </div>
+  </section>
+
+  <!-- ============ TEAM (COACH) ============ -->
+  <section id="v-team" class="hide">
+    <div class="note">Coach view. Paste each player's copied data below. Pasting the same player again just updates their sessions, nothing doubles up.</div>
+    <div class="card">
+      <h2>Add player data</h2>
+      <label class="f">Paste one or more players' data<textarea id="t_text" style="min-height:110px"></textarea></label>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="t_import">Add to team</button>
+        <button class="btn light" id="t_copy">Copy combined CSV</button>
+        <button class="btn light hide" id="t_dl">Download CSV</button>
+      </div>
+      <div class="small" id="t_info" style="margin-top:8px"></div>
+      <h3>Pull from the Google Sheet</h3>
+      <div class="sub">Loads every synced session from your Google Sheet. Enter the coach sheet code once; it stays on this device.</div>
+      <div class="row"><input id="t_readkey" placeholder="Coach sheet code" autocomplete="off" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px"><button class="btn" id="t_pull">Pull from sheet</button></div>
+    </div>
+    <div class="card">
+      <div class="spread"><h2>Team board</h2>
+        <label class="f" style="flex-direction:row;align-items:center;gap:6px">7-day pitch alert<input type="number" id="t_limit" style="width:80px;padding:6px"></label>
+      </div>
+      <div class="sub">Tap a player for their charts. Red = arm feel 4 or lower in the last 7 days, or over your 7-day pitch alert.</div>
+      <div class="tablewrap" id="t_table"></div>
+    </div>
+    <div class="card">
+      <h2>Leaderboards</h2>
+      <div class="row" style="margin-bottom:10px">
+        <select id="lbm" style="flex:2;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:15px;background:#fff"></select>
+        <select id="lbmode" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:15px;background:#fff"><option value="best">Best</option><option value="gain">Most improved</option></select>
+        <select id="lbclass" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:15px;background:#fff"></select>
+      </div>
+      <div id="lbtable"></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="lb_copy">Copy leaderboard for players</button></div>
+      <div class="small" style="margin-top:6px">Send the code in your team group text. Players paste it in the Me tab to see their team and class rank. It includes names and best numbers only, no notes.</div>
+    </div>
+    <div class="card hide" id="t_detail"></div>
+    <div class="card">
+      <button class="btn danger sm" id="t_wipe">Clear team data on this device</button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal"><div class="box" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- storage ---------------- */
+const KEY="hobanOT.v1", DRAFT="hobanOT.draft.v1", COACH="hobanOT.coach.v1";
+let memStore={};
+function lsGet(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return k in memStore?memStore[k]:def}}
+function lsSet(k,v){memStore[k]=v;try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+let storageOK=true;try{localStorage.setItem("hobanOT.t","1");localStorage.removeItem("hobanOT.t")}catch(e){storageOK=false}
+
+let state=lsGet(KEY,{player:{name:"",grad:"",pos:"",bats:"",throws:""},sessions:[]});
+function save(){lsSet(KEY,state)}
+
+/* ---------------- helpers ---------------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const num=v=>{if(v===null||v===undefined||v==="")return null;const n=+v;return isFinite(n)?n:null};
+const pct=(a,b)=>b?Math.round(1000*a/b)/10:null;
+const fmtPct=v=>v==null?"-":v.toFixed(0)+"%";
+const fmt1=v=>v==null?"-":(Math.round(v*10)/10).toString();
+const todayStr=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dateLabel=d=>{if(!d)return"";const [y,m,dd]=d.split("-");return `${+m}/${+dd}`};
+function daysAgo(d){const t=new Date(todayStr()+"T00:00:00"),x=new Date(d+"T00:00:00");return Math.round((t-x)/864e5)}
+function weekStart(d){const x=new Date(d+"T00:00:00");const dow=(x.getDay()+6)%7;x.setDate(x.getDate()-dow);return x.toISOString().slice(0,10)}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.style.display="block";clearTimeout(toast._t);toast._t=setTimeout(()=>t.style.display="none",2400)}
+function confirmBox(msg,yesLabel,onYes){
+  $("#modalBox").innerHTML=`<p style="font-weight:600;margin-top:0">${esc(msg)}</p><div class="row"><button class="btn danger" id="mdY">${esc(yesLabel)}</button><button class="btn light" id="mdN">Cancel</button></div>`;
+  $("#modal").classList.add("on");
+  $("#mdY").onclick=()=>{$("#modal").classList.remove("on");onYes()};
+  $("#mdN").onclick=()=>$("#modal").classList.remove("on");
+}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")$("#modal").classList.remove("on")});
+const canDownload=(()=>{try{return window.self===window.top}catch(e){return false}})();
+
+async function copyText(txt){
+  try{await navigator.clipboard.writeText(txt);return true}catch(e){}
+  try{const ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const ok=document.execCommand("copy");ta.remove();return ok}catch(e){return false}
+}
+function showCopyFallback(txt){
+  $("#modalBox").innerHTML=`<p style="font-weight:600;margin-top:0">Copy did not work on this browser. Press and hold in the box, Select All, then Copy.</p><textarea style="width:100%;min-height:200px;font-size:12px" readonly>${esc(txt)}</textarea><button class="btn light" id="mdN" style="margin-top:8px">Done</button>`;
+  $("#modal").classList.add("on");$("#mdN").onclick=()=>$("#modal").classList.remove("on");
+}
+function downloadText(name,txt){const b=new Blob([txt],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ---------------- constants ---------------- */
+const PTYPES=[["FB","Fastball"],["CB","Curve"],["SL","Slider"],["CH","Change"],["CT","Cutter"],["OT","Other"]];
+const MOUND_DRILLS=["Towel drill","Rocker","Pivot pick","Hip lead","Plyo balls","Wall drill","Pro-step throws","Band / arm care","Holds / stretch","Flat ground"];
+const CAGE_DRILLS=["Top hand","Bottom hand","High tee","Low tee","Inside tee","Outside tee","Overload / underload","Two-strike approach","Oppo focus","Rhythm / load"];
+
+/* ---------------- nav ---------------- */
+let view="log";
+$("#nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;go(b.dataset.view)});
+function go(v){view=v;$$("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+  ["log","history","progress","me","team"].forEach(x=>$("#v-"+x).classList.toggle("hide",x!==v));
+  if(v==="history")renderHistory();if(v==="progress")renderProgress();if(v==="me")renderMe();if(v==="team")renderTeam();
+  window.scrollTo(0,0)}
+function renderWho(){$("#whoLabel").textContent=state.player.name||"Set your name in Me"}
+
+let logType="mound";
+$("#logSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;logType=b.dataset.t;
+  $$("#logSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  $("#moundForm").classList.toggle("hide",logType!=="mound");$("#cageForm").classList.toggle("hide",logType!=="cage");$("#liftForm").classList.toggle("hide",logType!=="lift")});
+
+/* ---------------- draft (survives refresh mid-bullpen) ---------------- */
+let draft=lsGet(DRAFT,null)||{m:{ptype:"FB",pitches:[],drills:{},arm:null,rpe:null},c:{barrel:false,dir:null,swings:[],drills:{}}};
+if(!draft.l)draft.l={exercises:[]};
+function saveDraft(){lsSet(DRAFT,draft)}
+
+/* ---------------- MOUND ---------------- */
+function scaleButtons(el,cur,onPick){el.innerHTML="";for(let i=1;i<=10;i++){const b=document.createElement("button");b.textContent=i;if(cur===i)b.classList.add("on");b.onclick=()=>onPick(i);el.appendChild(b)}}
+function replayCount(pitches){let b=0,s=0,fpo=0,fps=0;for(const p of pitches){if(p.nb){b=0;s=0}if(b===0&&s===0){fpo++;if(p.s)fps++}
+    if(p.s){s++;if(s>=3){b=0;s=0}}else{b++;if(b>=4){b=0;s=0}}}return{b,s,fpo,fps}}
+function renderMoundTypes(){const el=$("#m_types");el.innerHTML="";PTYPES.forEach(([k,l])=>{const b=document.createElement("button");b.className="chipbtn"+(draft.m.ptype===k?" on":"");b.textContent=l;b.onclick=()=>{draft.m.ptype=k;saveDraft();renderMoundTypes()};el.appendChild(b)})}
+function renderMoundCounter(fillTotals){
+  const P=draft.m.pitches,c=replayCount(P);
+  const dots=(n,max,cls)=>Array.from({length:max},(_,i)=>`<span class="dot ${cls}${i<n?" fill":""}"></span>`).join("");
+  $("#m_count").innerHTML=`<span>B ${dots(c.b,3,"b")}</span><span>S ${dots(c.s,2,"s")}</span>`;
+  const tot=P.length,k=P.filter(p=>p.s).length;
+  $("#m_live").innerHTML=[["Pitches",tot],["Strike %",fmtPct(pct(k,tot))],["1st-pitch K%",fmtPct(pct(c.fps,c.fpo))],["Batters",c.fpo]].map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
+  const by={};P.forEach(p=>{by[p.t]=by[p.t]||{n:0,k:0};by[p.t].n++;if(p.s)by[p.t].k++});
+  $("#m_tally").innerHTML=PTYPES.filter(([k])=>by[k]).map(([k,l])=>`<span class="pill">${l}: <b>${by[k].k}/${by[k].n}</b> (${fmtPct(pct(by[k].k,by[k].n))})</span>`).join("");
+  if(fillTotals&&tot){$("#m_pitches").value=tot;$("#m_strikes").value=k;$("#m_fpo").value=c.fpo;$("#m_fps").value=c.fps}
+  if(fillTotals&&!tot){["#m_pitches","#m_strikes","#m_fpo","#m_fps"].forEach(s=>$(s).value="")}
+  updBalls();
+}
+function updBalls(){const p=num($("#m_pitches").value),s=num($("#m_strikes").value);$("#m_balls").value=(p!=null&&s!=null)?Math.max(0,p-s):""}
+["#m_pitches","#m_strikes"].forEach(s=>$(s).addEventListener("input",updBalls));
+function addPitch(strike){draft.m.pitches.push({t:draft.m.ptype,s:strike,...(draft.m.nextNB?{nb:1}:{})});draft.m.nextNB=false;saveDraft();renderMoundCounter(true);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}}
+$("#m_strike").onclick=()=>addPitch(true);
+$("#m_ball").onclick=()=>addPitch(false);
+$("#m_undo").onclick=()=>{draft.m.pitches.pop();saveDraft();renderMoundCounter(true)};
+$("#m_newbatter").onclick=()=>{draft.m.nextNB=true;saveDraft();toast("Next pitch starts a new batter (0-0)")};
+$("#m_clear").onclick=()=>{if(!draft.m.pitches.length)return;confirmBox("Clear the pitch counter?","Clear",()=>{draft.m.pitches=[];saveDraft();renderMoundCounter(true)})};
+
+function renderDrills(chipsEl,repsEl,list,store,unit){
+  chipsEl.innerHTML="";list.forEach(d=>{const b=document.createElement("button");b.className="chipbtn"+(d in store?" on":"");b.textContent=d;
+    b.onclick=()=>{if(d in store)delete store[d];else store[d]="";saveDraft();renderDrills(chipsEl,repsEl,list,store,unit)};chipsEl.appendChild(b)});
+  repsEl.innerHTML="";Object.keys(store).forEach(d=>{const r=document.createElement("div");r.className="drillrow";r.innerHTML=`<span>${esc(d)}</span><input type="number" inputmode="numeric" placeholder="${unit}">`;
+    const inp=r.querySelector("input");inp.value=store[d];inp.oninput=()=>{store[d]=inp.value;saveDraft()};repsEl.appendChild(r)});
+}
+function renderArm(){scaleButtons($("#m_arm"),draft.m.arm,i=>{draft.m.arm=i;saveDraft();renderArm()});scaleButtons($("#m_rpe"),draft.m.rpe,i=>{draft.m.rpe=i;saveDraft();renderArm()});
+  $("#m_armWarn").classList.toggle("hide",!(draft.m.arm!=null&&draft.m.arm<=4))}
+function renderWeekNote(){const wk=state.sessions.filter(s=>s.type==="mound"&&s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7);const p=wk.reduce((a,s)=>a+(num(s.pitches)||0),0);
+  $("#m_week").textContent=`Last 7 days: ${wk.length} throwing session${wk.length===1?"":"s"}, ${p} pitches logged.`}
+
+function resetMound(){draft.m={ptype:draft.m.ptype||"FB",pitches:[],drills:{},arm:null,rpe:null};saveDraft();
+  ["#m_pitches","#m_strikes","#m_fpo","#m_fps","#m_vmax","#m_vavg","#m_ltft","#m_notes"].forEach(s=>$(s).value="");$("#m_date").value=todayStr();
+  initMound()}
+function initMound(){ $("#m_date").value=$("#m_date").value||todayStr();renderMoundTypes();renderMoundCounter(draft.m.pitches.length>0);
+  renderDrills($("#m_drills"),$("#m_drillReps"),MOUND_DRILLS,draft.m.drills,"reps");renderArm();renderWeekNote()}
+
+$("#m_save").onclick=()=>{
+  if(!state.player.name){toast("Add your name in the Me tab first");go("me");return}
+  const pitches=num($("#m_pitches").value),strikes=num($("#m_strikes").value);
+  if(strikes!=null&&pitches!=null&&strikes>pitches){toast("Strikes can't be more than pitches");return}
+  const hasAny=pitches||num($("#m_vmax").value)||num($("#m_ltft").value)||Object.keys(draft.m.drills).length;
+  if(!hasAny){toast("Log pitches, velo, distance, or a drill first");return}
+  const mix={};draft.m.pitches.forEach(p=>{mix[p.t]=mix[p.t]||{n:0,k:0};mix[p.t].n++;if(p.s)mix[p.t].k++});
+  const s={id:uid(),type:"mound",date:$("#m_date").value||todayStr(),kind:$("#m_kind").value,
+    pitches,strikes,fpo:num($("#m_fpo").value),fps:num($("#m_fps").value),mix,
+    vmax:num($("#m_vmax").value),vavg:num($("#m_vavg").value),ltft:num($("#m_ltft").value),
+    drills:{...draft.m.drills},arm:draft.m.arm,rpe:draft.m.rpe,notes:$("#m_notes").value.trim(),saved:new Date().toISOString()};
+  state.sessions.push(s);save();syncSoon();toast("Mound session saved");resetMound();
+};
+
+/* ---------------- CAGE ---------------- */
+function renderCageCounter(fill){
+  const S=draft.c.swings;
+  $("#c_barrel").classList.toggle("on",!!draft.c.barrel);
+  $$("[data-dir]").forEach(b=>b.classList.toggle("on",draft.c.dir===b.dataset.dir));
+  const cnt=r=>S.filter(x=>x.r===r).length;const bip=S.filter(x=>["LD","GB","FB","PU"].includes(x.r));
+  const bar=bip.filter(x=>x.b).length;
+  $("#c_live").innerHTML=[["Swings",S.length],["Barrel %",fmtPct(pct(bar,bip.length))],["LD %",fmtPct(pct(cnt("LD"),bip.length))],["Miss %",fmtPct(pct(cnt("X"),S.length))]].map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
+  if(fill){const set=(id,v)=>$(id).value=S.length?v:"";
+    set("#c_swings",S.length);set("#c_barrels",S.filter(x=>x.b).length);set("#c_miss",cnt("X"));set("#c_ld",cnt("LD"));set("#c_gb",cnt("GB"));set("#c_fb",cnt("FB"));set("#c_pu",cnt("PU"));set("#c_foul",cnt("F"));
+    set("#c_pull",S.filter(x=>x.d==="P").length);set("#c_mid",S.filter(x=>x.d==="M").length);set("#c_oppo",S.filter(x=>x.d==="O").length)}
+}
+$("#c_barrel").onclick=()=>{draft.c.barrel=!draft.c.barrel;saveDraft();renderCageCounter(false)};
+$$("[data-dir]").forEach(b=>b.onclick=()=>{draft.c.dir=draft.c.dir===b.dataset.dir?null:b.dataset.dir;saveDraft();renderCageCounter(false)});
+$$("[data-res]").forEach(b=>b.onclick=()=>{const r=b.dataset.res;const contact=["LD","GB","FB","PU"].includes(r);
+  draft.c.swings.push({r,d:contact?draft.c.dir:null,b:contact?!!draft.c.barrel:false});draft.c.barrel=false;draft.c.dir=null;saveDraft();renderCageCounter(true);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}});
+$("#c_undo").onclick=()=>{draft.c.swings.pop();saveDraft();renderCageCounter(true)};
+$("#c_clear").onclick=()=>{if(!draft.c.swings.length)return;confirmBox("Clear the swing counter?","Clear",()=>{draft.c.swings=[];saveDraft();renderCageCounter(true)})};
+const CAGE_NUM=["swings","barrels","miss","ld","gb","fb","pu","foul","pull","mid","oppo","evmax","evavg","mph"];
+function resetCage(){draft.c={barrel:false,dir:null,swings:[],drills:{}};saveDraft();CAGE_NUM.concat(["notes"]).forEach(k=>$("#c_"+k).value="");$("#c_date").value=todayStr();initCage()}
+function initCage(){$("#c_date").value=$("#c_date").value||todayStr();renderCageCounter(draft.c.swings.length>0);renderDrills($("#c_drills"),$("#c_drillReps"),CAGE_DRILLS,draft.c.drills,"reps")}
+$("#c_save").onclick=()=>{
+  if(!state.player.name){toast("Add your name in the Me tab first");go("me");return}
+  const s={id:uid(),type:"cage",date:$("#c_date").value||todayStr(),kind:$("#c_kind").value};
+  CAGE_NUM.forEach(k=>s[k]=num($("#c_"+k).value));
+  const bip=(s.ld||0)+(s.gb||0)+(s.fb||0)+(s.pu||0);
+  if(s.swings==null&&bip)s.swings=bip+(s.foul||0)+(s.miss||0);
+  if(!s.swings&&!s.evmax&&!Object.keys(draft.c.drills).length){toast("Log swings, exit velo, or a drill first");return}
+  if(s.barrels!=null&&s.barrels>bip&&bip){toast("Barrels can't be more than balls in play");return}
+  s.drills={...draft.c.drills};s.notes=$("#c_notes").value.trim();s.saved=new Date().toISOString();
+  state.sessions.push(s);save();syncSoon();toast("Cage session saved");resetCage();
+};
+
+/* ---------------- LIFT ---------------- */
+const LIFTS=["Bench press","Back squat","Split squat","Deadlift","Trap bar deadlift","Incline bench","Leg press","Power clean","Hang clean","Front squat","RDL","Overhead press","Dumbbell bench","Lunges","Step-ups","Hip thrust","Pull-ups","Chin-ups","Rows","Lat pulldown","Push-ups","Dips","Med ball throws","Core / planks"];
+const cleanName=t=>String(t||"").replace(/[:|;,]/g," ").replace(/\s+/g," ").trim().slice(0,40);
+// estimated 1-rep max (Epley); only shown for weighted sets of 10 reps or fewer
+function e1rm(w,r){w=num(w);r=num(r);if(!w||!r||r>10)return null;return r===1?w:Math.round(w*(1+r/30))}
+function exBest(ex){let best=null;(ex.sets||[]).forEach(st=>{const v=e1rm(st.w,st.r);if(v!=null&&(best==null||v>best.e))best={e:v,w:num(st.w),r:num(st.r)}});return best}
+function exTop(ex){let top=null;(ex.sets||[]).forEach(st=>{const w=num(st.w),r=num(st.r)||0;if(w&&(!top||w>top.w||(w===top.w&&r>top.r)))top={w,r}});return top}
+function exReps(ex){return (ex.sets||[]).reduce((a,st)=>a+(num(st.r)||0),0)}
+function exVolume(ex){return (ex.sets||[]).reduce((a,st)=>a+(num(st.w)||0)*(num(st.r)||0),0)}
+function setText(st){const w=num(st.w),r=num(st.r);return w?`${w}x${r??0}`:`BWx${r??0}`}
+function lastTimeFor(name){const prev=sortSessions(state.sessions.filter(x=>x.type==="lift")).find(x=>(x.exercises||[]).some(e=>e.name===name));
+  if(!prev)return "";const e=prev.exercises.find(e=>e.name===name);return `Last time (${dateLabel(prev.date)}): ${(e.sets||[]).map(setText).join(", ")}`}
+function prFor(name){let best=null;state.sessions.filter(x=>x.type==="lift").forEach(x=>(x.exercises||[]).filter(e=>e.name===name).forEach(e=>{const b=exBest(e);if(b&&(!best||b.e>best.e))best=b}));return best}
+function renderLiftPick(){const el=$("#l_pick");el.innerHTML=LIFTS.map(n=>`<option>${esc(n)}</option>`).join("")+`<option value="__custom">Other (type it)</option>`}
+$("#l_pick").addEventListener("change",()=>$("#l_customRow").classList.toggle("hide",$("#l_pick").value!=="__custom"));
+$("#l_add").onclick=()=>{let name=$("#l_pick").value;if(name==="__custom"){name=cleanName($("#l_custom").value);if(!name){toast("Type the exercise name");return}$("#l_custom").value=""}
+  if(draft.l.exercises.some(e=>e.name===name)){toast(name+" is already on today's list");return}
+  draft.l.exercises.push({name,sets:[{w:"",r:""}]});saveDraft();renderLiftList(true)};
+function renderLiftList(focusLast){
+  const el=$("#l_list");
+  if(!draft.l.exercises.length){el.innerHTML=`<div class="empty">No exercises yet. Pick one above and tap Add.</div>`;return}
+  el.innerHTML=draft.l.exercises.map((ex,i)=>{const pr=prFor(ex.name),b=exBest(ex);
+    return `<div class="ex" data-ex="${i}"><div class="exh"><b>${esc(ex.name)}</b><button class="btn light sm" data-rmex="${i}">Remove</button></div>
+    <div class="last">${esc(lastTimeFor(ex.name)||"First time logging this one")}${pr?` · PR est. max ${pr.e}`:""}</div>
+    <div class="sethead"><span>Set</span><span>Weight (lb)</span><span>Reps</span><span></span></div>
+    ${ex.sets.map((st,j)=>`<div class="setrow"><span class="n">${j+1}</span><input type="number" inputmode="decimal" step="2.5" placeholder="lb" data-w="${i}.${j}" value="${esc(st.w)}"><input type="number" inputmode="numeric" placeholder="reps" data-r="${i}.${j}" value="${esc(st.r)}"><button class="x" data-rmset="${i}.${j}" aria-label="Remove set">×</button></div>`).join("")}
+    <div class="spread" style="margin-top:8px"><button class="btn ghost sm" data-addset="${i}">+ Set</button><span class="e1rm" data-e="${i}">${b?`Est. max today: ${b.e}`+(pr&&b.e>pr.e?" (new PR!)":""):""}</span></div></div>`}).join("");
+  el.querySelectorAll("[data-w],[data-r]").forEach(inp=>inp.addEventListener("input",()=>{const [i,j]=(inp.dataset.w||inp.dataset.r).split(".").map(Number);
+    draft.l.exercises[i].sets[j][inp.dataset.w!=null?"w":"r"]=inp.value;saveDraft();
+    const b=exBest(draft.l.exercises[i]),pr=prFor(draft.l.exercises[i].name);el.querySelector(`[data-e="${i}"]`).textContent=b?`Est. max today: ${b.e}`+(pr&&b.e>pr.e?" (new PR!)":""):""}));
+  el.querySelectorAll("[data-addset]").forEach(bt=>bt.onclick=()=>{const ex=draft.l.exercises[+bt.dataset.addset];const last=ex.sets[ex.sets.length-1]||{w:"",r:""};ex.sets.push({w:last.w,r:last.r});saveDraft();renderLiftList()});
+  el.querySelectorAll("[data-rmset]").forEach(bt=>bt.onclick=()=>{const [i,j]=bt.dataset.rmset.split(".").map(Number);draft.l.exercises[i].sets.splice(j,1);if(!draft.l.exercises[i].sets.length)draft.l.exercises.splice(i,1);saveDraft();renderLiftList()});
+  el.querySelectorAll("[data-rmex]").forEach(bt=>bt.onclick=()=>confirmBox(`Remove ${draft.l.exercises[+bt.dataset.rmex].name}?`,"Remove",()=>{draft.l.exercises.splice(+bt.dataset.rmex,1);saveDraft();renderLiftList()}));
+  if(focusLast){const ins=el.querySelectorAll(".ex:last-child [data-w]");if(ins.length)ins[0].focus()}
+}
+function initLift(){$("#l_date").value=$("#l_date").value||todayStr();renderLiftPick();renderLiftList()}
+function resetLift(){draft.l={exercises:[]};saveDraft();["#l_bw","#l_notes"].forEach(x=>$(x).value="");$("#l_rpe").value="";$("#l_date").value=todayStr();renderLiftList()}
+$("#l_save").onclick=()=>{
+  if(!state.player.name){toast("Add your name in the Me tab first");go("me");return}
+  const exercises=draft.l.exercises.map(e=>({name:e.name,sets:e.sets.filter(st=>num(st.r)).map(st=>({w:num(st.w),r:num(st.r)}))})).filter(e=>e.sets.length);
+  if(!exercises.length){toast("Enter reps for at least one set");return}
+  const prs=exercises.filter(e=>{const b=exBest(e),pr=prFor(e.name);return b&&pr&&b.e>pr.e}).map(e=>e.name);
+  state.sessions.push({id:uid(),type:"lift",date:$("#l_date").value||todayStr(),kind:$("#l_kind").value,bw:num($("#l_bw").value),rpe:num($("#l_rpe").value),exercises,notes:$("#l_notes").value.trim(),saved:new Date().toISOString()});
+  save();syncSoon();resetLift();toast(prs.length?`Saved. New PR: ${prs.join(", ")}!`:"Lift saved");
+};
+
+/* ---------------- METRICS FOR COMPARISONS ---------------- */
+const LB_LIFTS=[["bench","Bench press",["Bench press"]],["squat","Back squat",["Back squat"]],["dead","Deadlift",["Deadlift","Trap bar deadlift"]],["clean","Power clean",["Power clean"]],["incline","Incline bench",["Incline bench"]],["split","Split squat",["Split squat"]],["legpress","Leg press",["Leg press"]]];
+const METRICS=[...LB_LIFTS.map(([k,l])=>({k,label:l+" (est. max)",unit:" lb",gain:true})),
+  {k:"total",label:"Big 3 total (bench + squat + dead)",unit:" lb",gain:true},
+  {k:"velo",label:"Top velo",unit:" mph",gain:true,dec:1},
+  {k:"ev",label:"Top exit velo",unit:" mph",gain:true,dec:1},
+  {k:"ltft",label:"Long toss distance",unit:" ft",gain:true},
+  {k:"strike",label:"Strike % (50+ pitches)",unit:"%",gain:false},
+  {k:"barrel",label:"Barrel % (25+ balls in play)",unit:"%",gain:false},
+  {k:"lifts",label:"Lifts logged",unit:"",gain:false},
+  {k:"sessions",label:"Total sessions logged",unit:"",gain:false}];
+const fmtM=(m,v)=>v==null?"-":(m.dec?(Math.round(v*10)/10):Math.round(v))+m.unit;
+function series(list){const xs=list.filter(x=>x.v!=null).sort((a,b)=>(a.d||"").localeCompare(b.d||""));if(!xs.length)return null;
+  const best=Math.max(...xs.map(x=>x.v));return{first:xs[0].v,best,last:xs[xs.length-1].v,gain:best-xs[0].v,n:xs.length,firstDate:xs[0].d,lastDate:xs[xs.length-1].d}}
+function metricsFrom(sessions){
+  const out={},L=sessions.filter(s=>s.type==="lift"),M=sessions.filter(s=>s.type==="mound"),C=sessions.filter(s=>s.type==="cage");
+  LB_LIFTS.forEach(([k,,names])=>{const pts=[];L.forEach(s=>{let b=null;(s.exercises||[]).filter(e=>names.includes(e.name)).forEach(e=>{const x=exBest(e);if(x&&(b==null||x.e>b))b=x.e});if(b!=null)pts.push({d:s.date,v:b})});out[k]=series(pts)});
+  if(out.bench&&out.squat&&out.dead){const f=out.bench.first+out.squat.first+out.dead.first,b=out.bench.best+out.squat.best+out.dead.best,l=out.bench.last+out.squat.last+out.dead.last;out.total={first:f,best:b,last:l,gain:b-f}}
+  out.velo=series(M.map(s=>({d:s.date,v:num(s.vmax)})));out.ltft=series(M.map(s=>({d:s.date,v:num(s.ltft)})));out.ev=series(C.map(s=>({d:s.date,v:num(s.evmax)})));
+  const P=M.reduce((a,s)=>a+(num(s.pitches)||0),0),K=M.reduce((a,s)=>a+(num(s.strikes)||0),0);if(P>=50){const v=pct(K,P);out.strike={first:null,best:v,last:v,gain:null}}
+  const bip=C.reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(num(s.barrels)||0),0);if(bip>=25){const v=pct(bar,bip);out.barrel={first:null,best:v,last:v,gain:null}}
+  if(L.length)out.lifts={best:L.length,gain:null};if(sessions.length)out.sessions={best:sessions.length,gain:null};
+  return out}
+// rank helper: higher is better
+function rankIn(list,k,mode,me){const vals=list.map(p=>({p,v:p.m[k]?p.m[k][mode]:null})).filter(x=>x.v!=null&&(mode!=="gain"||x.v>0||x.p===me)).sort((a,b)=>b.v-a.v);
+  const mine=vals.find(x=>x.p===me);if(!mine)return{rank:null,of:vals.length,top:vals[0]};return{rank:1+vals.filter(x=>x.v>mine.v).length,of:vals.length,top:vals[0]}}
+const ord=n=>{const s=["th","st","nd","rd"],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
+
+function meVsMeCard(sessions,who){
+  const m=metricsFrom(sessions);const rows=METRICS.filter(x=>x.gain&&m[x.k]);
+  if(!rows.length)return null;const d=document.createElement("div");d.className="card";
+  d.innerHTML=`<h2>${who?esc(who)+" vs. himself":"You vs. you"}</h2><div class="sub">First number logged, best so far, most recent, and how much it has gone up.</div><div class="tablewrap"><table><tr><th>Metric</th><th>First</th><th>Best</th><th>Latest</th><th>Change</th></tr>${rows.map(x=>{const v=m[x.k];const g=v.gain;
+    return `<tr><td>${esc(x.label.replace(" (est. max)",""))}</td><td>${fmtM(x,v.first)}</td><td><b>${fmtM(x,v.best)}</b></td><td>${fmtM(x,v.last)}</td><td style="color:${g>0?"var(--good)":"inherit"};font-weight:700">${g==null?"-":(g>0?"+":"")+fmtM(x,g)}</td></tr>`}).join("")}</table></div>`;
+  return d}
+function stackUpCard(me,pool,title){
+  // me: {n,g,m}; pool: array of {n,g,m} including me
+  const rows=METRICS.filter(x=>me.m[x.k]&&me.m[x.k].best!=null);if(!rows.length||pool.length<2)return null;
+  const cls=pool.filter(p=>p.g&&p.g===me.g);
+  const d=document.createElement("div");d.className="card";
+  d.innerHTML=`<h2>${esc(title)}</h2><div class="sub">Rank among players on the leaderboard${me.g?` and in the class of ${esc(me.g)}`:""}. "Improved" ranks how much the number has gone up since the first log.</div>${rows.map(x=>{
+    const t=rankIn(pool,x.k,"best",me),c=rankIn(cls,x.k,"best",me),gi=x.gain?rankIn(pool,x.k,"gain",me):null;
+    const top=r=>r.top?(r.top.p===me?"you hold it":`${fmtM(x,r.top.v)}, ${esc(r.top.p.n)}`):"-";
+    const badge=r=>r.rank?`<b style="color:${r.rank===1?"var(--gold)":"var(--ink)"}">${ord(r.rank)}</b> of ${r.of}`:"-";
+    return `<div class="hist"><div class="spread"><span class="t">${esc(x.label.replace(" (est. max)",""))}</span><b>${fmtM(x,me.m[x.k].best)}</b></div>
+      <div style="font-size:14px;margin-top:4px">Team: ${badge(t)} <span class="m">· best ${top(t)}</span></div>
+      ${me.g&&c.of>1?`<div style="font-size:14px;margin-top:2px">Class of ${esc(me.g)}: ${badge(c)} <span class="m">· best ${top(c)}</span></div>`:""}
+      ${gi&&gi.rank?`<div style="font-size:14px;margin-top:2px">Most improved: ${badge(gi)}</div>`:""}</div>`}).join("")}`;
+  return d}
+
+/* ---------------- derived metrics (display only) ---------------- */
+function moundStats(s){const p=num(s.pitches),k=num(s.strikes);return{strikePct:p?pct(k||0,p):null,fpsPct:num(s.fpo)?pct(num(s.fps)||0,num(s.fpo)):null}}
+function cageStats(s){const bip=(num(s.ld)||0)+(num(s.gb)||0)+(num(s.fb)||0)+(num(s.pu)||0);const dirN=(num(s.pull)||0)+(num(s.mid)||0)+(num(s.oppo)||0);
+  return{bip,barrelPct:bip?pct(num(s.barrels)||0,bip):null,ldPct:bip?pct(num(s.ld)||0,bip):null,gbPct:bip?pct(num(s.gb)||0,bip):null,fbPct:bip?pct(num(s.fb)||0,bip):null,puPct:bip?pct(num(s.pu)||0,bip):null,
+    missPct:num(s.swings)?pct(num(s.miss)||0,num(s.swings)):null,pullPct:dirN?pct(num(s.pull)||0,dirN):null,midPct:dirN?pct(num(s.mid)||0,dirN):null,oppoPct:dirN?pct(num(s.oppo)||0,dirN):null}}
+function drillText(d){return Object.entries(d||{}).map(([k,v])=>v?`${k} x${v}`:k).join(", ")}
+
+/* ---------------- HISTORY ---------------- */
+let histFilter="all";
+$("#histSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;histFilter=b.dataset.f;$$("#histSeg button").forEach(x=>x.classList.toggle("on",x===b));renderHistory()});
+function sessionCard(s,canDelete){
+  let line="",extra="";
+  if(s.type==="mound"){const m=moundStats(s);
+    line=[s.pitches!=null?`${s.pitches} pitches`:null,m.strikePct!=null?`${fmtPct(m.strikePct)} strikes`:null,m.fpsPct!=null?`${fmtPct(m.fpsPct)} 1st-pitch K`:null,s.vmax?`${fmt1(+s.vmax)} max`:null,s.ltft?`${s.ltft} ft`:null].filter(Boolean).join(" · ");
+    const mix=s.mix&&Object.keys(s.mix).length?PTYPES.filter(([k])=>s.mix[k]).map(([k])=>`${k} ${s.mix[k].k}/${s.mix[k].n}`).join(", "):"";
+    extra=[mix,s.arm?`Arm ${s.arm}/10`:null,s.rpe?`Effort ${s.rpe}/10`:null].filter(Boolean).join(" · ");
+  }else if(s.type==="lift"){
+    const ex=s.exercises||[];
+    line=[`${ex.length} exercise${ex.length===1?"":"s"}`,`${ex.reduce((a,e)=>a+e.sets.length,0)} sets`,s.bw?`BW ${s.bw}`:null,s.rpe?`Effort ${s.rpe}/10`:null].filter(Boolean).join(" · ");
+    extra=ex.map(e=>{const b=exBest(e);return `${e.name}: ${e.sets.map(setText).join(", ")}${b?` (est. ${b.e})`:""}`}).join("\n");
+  }else{const c=cageStats(s);
+    line=[s.swings!=null?`${s.swings} swings`:null,c.barrelPct!=null?`${fmtPct(c.barrelPct)} barrel`:null,c.ldPct!=null?`${fmtPct(c.ldPct)} LD`:null,s.evmax?`${fmt1(+s.evmax)} max EV`:null].filter(Boolean).join(" · ");
+    extra=c.pullPct!=null?`Pull ${fmtPct(c.pullPct)} / Mid ${fmtPct(c.midPct)} / Oppo ${fmtPct(c.oppoPct)}`:"";
+  }
+  const dr=drillText(s.drills);
+  return `<div class="hist"><div class="spread"><div><span class="tag ${s.type}">${s.type.toUpperCase()}</span><span class="t">${esc(s.kind||"")}</span></div><div class="m">${esc(dateLabel(s.date))}</div></div>
+    <div style="margin-top:6px;font-size:14px">${esc(line)||"<span class='m'>No counts</span>"}</div>
+    ${extra?`<div class="m" style="margin-top:3px;white-space:pre-line">${esc(extra)}</div>`:""}
+    ${dr?`<div class="m" style="margin-top:3px">Drills: ${esc(dr)}</div>`:""}
+    ${s.notes?`<div class="m" style="margin-top:3px;font-style:italic">${esc(s.notes)}</div>`:""}
+    ${canDelete?`<div style="text-align:right;margin-top:6px"><button class="btn light sm" data-del="${esc(s.id)}">Delete</button></div>`:""}</div>`;
+}
+function sortSessions(arr){return [...arr].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.saved||"").localeCompare(a.saved||""))}
+function renderHistory(){
+  const list=sortSessions(state.sessions.filter(s=>histFilter==="all"||s.type===histFilter));
+  $("#histList").innerHTML=list.length?list.map(s=>sessionCard(s,true)).join(""):`<div class="empty">No sessions yet. Log one from the Log tab.</div>`;
+  $$("[data-del]").forEach(b=>b.onclick=()=>confirmBox("Delete this session?","Delete",()=>{state.sessions=state.sessions.filter(s=>s.id!==b.dataset.del);save();renderHistory();toast("Deleted")}));
+}
+
+/* ---------------- CHARTS (single series, inline SVG, hover tips) ---------------- */
+function chart(container,pts,o){
+  // pts: [{label, y, tip}]
+  const W=340,H=170,L=34,R=10,T=12,B=26;
+  if(!pts.length){container.innerHTML=`<div class="empty">Not enough data yet.</div>`;return}
+  const ys=pts.map(p=>p.y);let lo=o.min!=null?o.min:Math.min(...ys),hi=o.max!=null?o.max:Math.max(...ys);
+  if(o.min==null){const pad=(hi-lo)*0.15||2;lo=Math.max(0,Math.floor(lo-pad))}
+  if(o.max==null){const pad=(hi-lo)*0.15||2;hi=Math.ceil(hi+pad)}
+  if(hi===lo)hi=lo+1;
+  const iw=W-L-R,ih=H-T-B,n=pts.length;
+  const x=i=>o.bar?L+iw*(i+0.5)/n:(n===1?L+iw/2:L+iw*i/(n-1));
+  const y=v=>T+ih-(v-lo)/(hi-lo)*ih;
+  const ticks=[lo,lo+(hi-lo)/2,hi];
+  let g=ticks.map(t=>`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="#e6e9e6" stroke-width="1"/><text x="${L-6}" y="${y(t)+4}" font-size="10" fill="#7b857f" text-anchor="end">${Math.round(t)}${o.unit||""}</text>`).join("");
+  const step=Math.max(1,Math.ceil(n/6));
+  g+=pts.map((p,i)=>(i%step===0||i===n-1)?`<text x="${x(i)}" y="${H-8}" font-size="10" fill="#7b857f" text-anchor="middle">${esc(p.label)}</text>`:"").join("");
+  let marks="";
+  if(o.bar){const bw=Math.max(4,Math.min(28,iw/n-4));marks=pts.map((p,i)=>{const h=Math.max(1,T+ih-y(p.y));return `<rect x="${x(i)-bw/2}" y="${y(p.y)}" width="${bw}" height="${h}" rx="3" fill="${o.color}"/>`}).join("")}
+  else{marks=`<polyline fill="none" stroke="${o.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${pts.map((p,i)=>x(i)+","+y(p.y)).join(" ")}"/>`+
+    pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.y)}" r="4" fill="${o.color}" stroke="#fff" stroke-width="2"/>`).join("")}
+  const hits=pts.map((p,i)=>{const w=o.bar?iw/n:(n===1?iw:iw/(n-1));return `<rect data-i="${i}" x="${x(i)-w/2}" y="${T}" width="${w}" height="${ih}" fill="transparent"/>`}).join("");
+  container.innerHTML=`<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.title||"chart")}"><line x1="${L}" x2="${W-R}" y1="${T+ih}" y2="${T+ih}" stroke="#c9cec9"/>${g}${marks}<line class="xh" y1="${T}" y2="${T+ih}" stroke="#15201a" stroke-width="1" stroke-dasharray="3 3" style="display:none"/>${hits}</svg><div class="tip"></div></div>`;
+  const svg=container.querySelector("svg"),tip=container.querySelector(".tip"),xh=container.querySelector(".xh");
+  const show=i=>{const p=pts[i],r=svg.getBoundingClientRect(),sx=r.width/W;tip.innerHTML=p.tip;tip.style.display="block";tip.style.left=(x(i)*sx)+"px";tip.style.top=(y(p.y)*sx)+"px";if(!o.bar){xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.style.display="block"}};
+  const hide=()=>{tip.style.display="none";xh.style.display="none"};
+  svg.querySelectorAll("rect[data-i]").forEach(h=>{h.addEventListener("pointerenter",()=>show(+h.dataset.i));h.addEventListener("pointerdown",()=>show(+h.dataset.i))});
+  svg.addEventListener("pointerleave",hide);
+}
+function chartCard(title,sub){const d=document.createElement("div");d.className="card";d.innerHTML=`<h2>${esc(title)}</h2>${sub?`<div class="sub">${esc(sub)}</div>`:""}<div class="c"></div>`;return d}
+
+function buildProgress(target,sessions,who){
+  target.innerHTML="";
+  const M=sessions.filter(s=>s.type==="mound").sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const C=sessions.filter(s=>s.type==="cage").sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const Lf=sessions.filter(s=>s.type==="lift").sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  if(!sessions.length){target.innerHTML=`<div class="empty">No sessions logged yet${who?" for "+esc(who):""}.</div>`;return}
+  const totP=M.reduce((a,s)=>a+(num(s.pitches)||0),0),totK=M.reduce((a,s)=>a+(num(s.strikes)||0),0);
+  const vmax=Math.max(0,...M.map(s=>num(s.vmax)||0)),evmax=Math.max(0,...C.map(s=>num(s.evmax)||0));
+  const totSw=C.reduce((a,s)=>a+(num(s.swings)||0),0);
+  const bipAll=C.reduce((a,s)=>a+cageStats(s).bip,0),barAll=C.reduce((a,s)=>a+(num(s.barrels)||0),0);
+  const k=document.createElement("div");k.className="kpis";
+  k.innerHTML=[["Sessions",sessions.length],["Pitches",totP],["Strike %",fmtPct(pct(totK,totP))],["Top velo",vmax?fmt1(vmax):"-"],["Swings",totSw],["Barrel %",fmtPct(pct(barAll,bipAll))],["Top EV",evmax?fmt1(evmax):"-"],["Last 7 days",sessions.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length+" sess."]]
+    .concat(Lf.length?[["Lifts",Lf.length],["Lifts last 7 days",Lf.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length]]:[])
+    .map(([k,v])=>`<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
+  target.appendChild(k);
+  if(buildProgress.extra){const ex=buildProgress.extra;buildProgress.extra=null;if(ex)target.appendChild(ex)}
+  const mvm=meVsMeCard(sessions,who);if(mvm)target.appendChild(mvm);
+  const green="#063156",gold="#b5841a";
+  if(M.length){
+    let c=chartCard("Strike % by session","Goal: trend up and stay steady");target.appendChild(c);
+    chart(c.querySelector(".c"),M.filter(s=>num(s.pitches)).map(s=>{const v=moundStats(s).strikePct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.strikes}/${s.pitches})`}}),{color:green,min:0,max:100,unit:"%",title:"Strike percent"});
+    const fp=M.filter(s=>num(s.fpo));if(fp.length){c=chartCard("First-pitch strike % by session");target.appendChild(c);
+      chart(c.querySelector(".c"),fp.map(s=>{const v=moundStats(s).fpsPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.fps}/${s.fpo})`}}),{color:green,min:0,max:100,unit:"%"})}
+    const vv=M.filter(s=>num(s.vmax));if(vv.length){c=chartCard("Max velo by session (mph)");target.appendChild(c);
+      chart(c.querySelector(".c"),vv.map(s=>({label:dateLabel(s.date),y:+s.vmax,tip:`${dateLabel(s.date)} · ${s.vmax} mph${s.vavg?" (avg "+s.vavg+")":""}`})),{color:green})}
+    const wk={};M.forEach(s=>{if(!s.date)return;const w=weekStart(s.date);wk[w]=(wk[w]||0)+(num(s.pitches)||0)});
+    const wks=Object.keys(wk).sort();c=chartCard("Pitches per week","Workload. Build gradually, avoid big jumps week to week");target.appendChild(c);
+    chart(c.querySelector(".c"),wks.map(w=>({label:dateLabel(w),y:wk[w],tip:`Week of ${dateLabel(w)} · ${wk[w]} pitches`})),{color:green,bar:true,min:0});
+    const arm=M.filter(s=>s.arm);if(arm.length){c=chartCard("Arm feel after throwing (1-10)");target.appendChild(c);
+      chart(c.querySelector(".c"),arm.map(s=>({label:dateLabel(s.date),y:+s.arm,tip:`${dateLabel(s.date)} · arm ${s.arm}/10`})),{color:green,min:0,max:10})}
+    const lt=M.filter(s=>num(s.ltft));if(lt.length){c=chartCard("Long toss max distance (ft)");target.appendChild(c);
+      chart(c.querySelector(".c"),lt.map(s=>({label:dateLabel(s.date),y:+s.ltft,tip:`${dateLabel(s.date)} · ${s.ltft} ft`})),{color:green})}
+  }
+  if(Lf.length){
+    const navy="#3d2f73";
+    // per-exercise bests
+    const ex={};Lf.forEach(s=>(s.exercises||[]).forEach(e=>{(ex[e.name]=ex[e.name]||[]).push({date:s.date,best:exBest(e),top:exTop(e),reps:exReps(e),sets:e.sets})}));
+    const names=Object.keys(ex).sort((a,b)=>ex[b].length-ex[a].length||a.localeCompare(b));
+    const t=document.createElement("div");t.className="card";
+    t.innerHTML=`<h2>Lifting PRs</h2><div class="sub">Est. max uses your best set of 10 reps or fewer (Epley formula). It is a guide for tracking progress, not a number to test.</div><div class="tablewrap"><table><tr><th>Exercise</th><th>Times</th><th>Heaviest set</th><th>Est. max</th><th>Gain</th></tr>${names.map(n=>{
+      const L=ex[n],top=L.reduce((a,x)=>x.top&&(!a||x.top.w>a.w||(x.top.w===a.w&&x.top.r>a.r))?x.top:a,null);
+      const bests=L.filter(x=>x.best),pr=bests.reduce((a,x)=>!a||x.best.e>a.e?x.best:a,null);
+      const gain=bests.length>1?bests[bests.length-1].best.e-bests[0].best.e:null;
+      const maxReps=Math.max(...L.map(x=>Math.max(0,...x.sets.map(st=>st.r||0))));
+      return `<tr><td>${esc(n)}</td><td>${L.length}</td><td>${top?`${top.w} x ${top.r}`:`BW x ${maxReps}`}</td><td>${pr?pr.e:"-"}</td><td>${gain==null?"-":(gain>0?"+":"")+gain}</td></tr>`}).join("")}</table></div>`;
+    target.appendChild(t);
+    const withE=names.filter(n=>ex[n].some(x=>x.best));
+    if(withE.length){
+      const c=document.createElement("div");c.className="card";
+      c.innerHTML=`<h2>Strength progress</h2><div class="sub">Est. max per session. Tap an exercise.</div><div class="types lp"></div><div class="c"></div>`;target.appendChild(c);
+      const draw=n=>{c.querySelectorAll(".lp button").forEach(b=>b.classList.toggle("on",b.dataset.n===n));
+        chart(c.querySelector(".c"),ex[n].filter(x=>x.best).map(x=>({label:dateLabel(x.date),y:x.best.e,tip:`${dateLabel(x.date)} · est. ${x.best.e} (${x.best.w} x ${x.best.r})`})),{color:navy,title:n+" estimated max"})};
+      c.querySelector(".lp").innerHTML=withE.map(n=>`<button class="chipbtn" data-n="${esc(n)}">${esc(n)}</button>`).join("");
+      c.querySelectorAll(".lp button").forEach(b=>b.onclick=()=>draw(b.dataset.n));
+      draw(withE[0]);
+    }
+    const wk={};Lf.forEach(s=>{if(!s.date)return;const w=weekStart(s.date);wk[w]=(wk[w]||0)+1});const wks=Object.keys(wk).sort();
+    const c2=chartCard("Lifts per week","Team lifts are Mon / Wed / Thu");target.appendChild(c2);
+    chart(c2.querySelector(".c"),wks.map(w=>({label:dateLabel(w),y:wk[w],tip:`Week of ${dateLabel(w)} · ${wk[w]} lift${wk[w]===1?"":"s"}`})),{color:navy,bar:true,min:0,max:Math.max(4,...wks.map(w=>wk[w]))});
+    const bw=Lf.filter(s=>s.bw);if(bw.length>1){const c3=chartCard("Body weight (lb)");target.appendChild(c3);
+      chart(c3.querySelector(".c"),bw.map(s=>({label:dateLabel(s.date),y:s.bw,tip:`${dateLabel(s.date)} · ${s.bw} lb`})),{color:navy})}
+  }
+  if(C.length){
+    const cs=C.filter(s=>cageStats(s).bip);
+    let c=chartCard("Barrel % by session","Share of balls in play squared up");target.appendChild(c);
+    chart(c.querySelector(".c"),cs.map(s=>{const v=cageStats(s).barrelPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.barrels||0}/${cageStats(s).bip})`}}),{color:gold,min:0,max:100,unit:"%"});
+    c=chartCard("Line drive % by session");target.appendChild(c);
+    chart(c.querySelector(".c"),cs.map(s=>{const v=cageStats(s).ldPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% LD`}}),{color:gold,min:0,max:100,unit:"%"});
+    const ev=C.filter(s=>num(s.evmax));if(ev.length){c=chartCard("Max exit velo by session (mph)");target.appendChild(c);
+      chart(c.querySelector(".c"),ev.map(s=>({label:dateLabel(s.date),y:+s.evmax,tip:`${dateLabel(s.date)} · ${s.evmax} mph${s.evavg?" (avg "+s.evavg+")":""}`})),{color:gold})}
+    // batted ball mix table (all cage)
+    const sum=f=>C.reduce((a,s)=>a+(num(s[f])||0),0);const b=sum("ld")+sum("gb")+sum("fb")+sum("pu"),dn=sum("pull")+sum("mid")+sum("oppo");
+    const t=document.createElement("div");t.className="card";
+    t.innerHTML=`<h2>Batted-ball mix (all cage sessions)</h2><table><tr><th>Type</th><th>Count</th><th>Share</th></tr>${[["Line drive","ld"],["Ground ball","gb"],["Fly ball","fb"],["Pop up","pu"]].map(([l,f])=>`<tr><td>${l}</td><td>${sum(f)}</td><td>${fmtPct(pct(sum(f),b))}</td></tr>`).join("")}</table>
+      <h3>Direction</h3><table><tr><th>Field</th><th>Count</th><th>Share</th></tr>${[["Pull","pull"],["Middle","mid"],["Oppo","oppo"]].map(([l,f])=>`<tr><td>${l}</td><td>${sum(f)}</td><td>${fmtPct(pct(sum(f),dn))}</td></tr>`).join("")}</table>`;
+    target.appendChild(t);
+  }
+}
+const LBKEY="hobanOT.lb.v1";
+let teamLB=lsGet(LBKEY,null);
+function renderProgress(){
+  let card=null;
+  if(teamLB&&teamLB.players&&state.player.name){
+    const me={n:state.player.name,g:state.player.grad||"",m:metricsFrom(state.sessions)};
+    const pool=teamLB.players.filter(p=>p.n.toLowerCase()!==me.n.toLowerCase()).concat([me]);
+    card=stackUpCard(me,pool,`How you stack up (leaderboard from ${dateLabel(teamLB.date)})`);
+  }
+  buildProgress.extra=card;buildProgress($("#progressBody"),state.sessions,"")}
+
+/* ---------------- CSV export / import ---------------- */
+const COLS=["player","grad","pos","bats","throws","session_id","type","date","kind",
+ "pitches","strikes","balls","fp_batters","fp_strikes",
+ ...PTYPES.flatMap(([k])=>[`pt_${k.toLowerCase()}_n`,`pt_${k.toLowerCase()}_k`]),
+ "velo_max","velo_avg","longtoss_ft","arm_feel","effort",
+ "swings","barrels","line_drives","ground_balls","fly_balls","pop_ups","fouls","misses","pull","middle","oppo","ev_max","ev_avg","pitch_mph",
+ "bodyweight","lifts","lift_sets","lift_reps","lift_volume",
+ "drills","notes","saved_at"];
+function toRow(s,p){const r={player:p.name,grad:p.grad,pos:p.pos,bats:p.bats,throws:p.throws,session_id:s.id,type:s.type,date:s.date,kind:s.kind,drills:drillText(s.drills),notes:s.notes,saved_at:s.saved};
+  if(s.type==="mound"){Object.assign(r,{pitches:s.pitches,strikes:s.strikes,balls:(s.pitches!=null&&s.strikes!=null)?s.pitches-s.strikes:"",fp_batters:s.fpo,fp_strikes:s.fps,velo_max:s.vmax,velo_avg:s.vavg,longtoss_ft:s.ltft,arm_feel:s.arm,effort:s.rpe});
+    PTYPES.forEach(([k])=>{const m=(s.mix||{})[k];r[`pt_${k.toLowerCase()}_n`]=m?m.n:"";r[`pt_${k.toLowerCase()}_k`]=m?m.k:""})}
+  else if(s.type==="lift"){Object.assign(r,{effort:s.rpe,bodyweight:s.bw,
+    lifts:(s.exercises||[]).map(e=>`${e.name}: ${e.sets.map(st=>`${st.w||0}x${st.r||0}`).join("; ")}`).join(" | "),
+    lift_sets:(s.exercises||[]).reduce((a,e)=>a+e.sets.length,0),lift_reps:(s.exercises||[]).reduce((a,e)=>a+exReps(e),0),lift_volume:(s.exercises||[]).reduce((a,e)=>a+exVolume(e),0)})}
+  else Object.assign(r,{swings:s.swings,barrels:s.barrels,line_drives:s.ld,ground_balls:s.gb,fly_balls:s.fb,pop_ups:s.pu,fouls:s.foul,misses:s.miss,pull:s.pull,middle:s.mid,oppo:s.oppo,ev_max:s.evmax,ev_avg:s.evavg,pitch_mph:s.mph});
+  return r}
+function parseDrills(t){const d={};(t||"").split(/,\s*/).filter(Boolean).forEach(x=>{const m=x.match(/^(.*?)\s+x(\d+)$/);if(m)d[m[1]]=m[2];else d[x]=""});return d}
+function fromRow(r){const s={id:r.session_id,type:r.type,date:normDate(r.date),kind:r.kind,drills:parseDrills(r.drills),notes:r.notes||"",saved:r.saved_at||""};
+  if(r.type==="mound"){Object.assign(s,{pitches:num(r.pitches),strikes:num(r.strikes),fpo:num(r.fp_batters),fps:num(r.fp_strikes),vmax:num(r.velo_max),vavg:num(r.velo_avg),ltft:num(r.longtoss_ft),arm:num(r.arm_feel),rpe:num(r.effort),mix:{}});
+    PTYPES.forEach(([k])=>{const n=num(r[`pt_${k.toLowerCase()}_n`]);if(n)s.mix[k]={n,k:num(r[`pt_${k.toLowerCase()}_k`])||0}})}
+  else if(r.type==="lift"){Object.assign(s,{rpe:num(r.effort),bw:num(r.bodyweight),exercises:(r.lifts||"").split(" | ").filter(Boolean).map(chunk=>{const k=chunk.indexOf(":");
+      return{name:chunk.slice(0,k).trim(),sets:chunk.slice(k+1).split(";").map(x=>x.trim()).filter(Boolean).map(x=>{const [w,rr]=x.split("x");return{w:num(w)||null,r:num(rr)}})}}).filter(e=>e.name)})}
+  else Object.assign(s,{swings:num(r.swings),barrels:num(r.barrels),ld:num(r.line_drives),gb:num(r.ground_balls),fb:num(r.fly_balls),pu:num(r.pop_ups),foul:num(r.fouls),miss:num(r.misses),pull:num(r.pull),mid:num(r.middle),oppo:num(r.oppo),evmax:num(r.ev_max),evavg:num(r.ev_avg),mph:num(r.pitch_mph)});
+  return s}
+const csvCell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function toCSV(rows){return [COLS.join(",")].concat(rows.map(r=>COLS.map(c=>csvCell(r[c])).join(","))).join("\n")}
+function parseCSV(text){
+  const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=ch}
+    else if(ch==='"')q=true;else if(ch===","){row.push(cell);cell=""}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cell);rows.push(row);row=[];cell=""}
+    else cell+=ch}
+  if(cell!==""||row.length){row.push(cell);rows.push(row)}
+  // allow several pasted blocks: any row starting with "player,grad" is a header
+  const out=[];let hdr=null;
+  for(const r of rows){if(!r.length||(r.length===1&&!r[0].trim()))continue;
+    if(r[0].trim().toLowerCase()==="player"&&r.includes("session_id")){hdr=r.map(h=>h.trim());continue}
+    if(!hdr)continue;const o={};hdr.forEach((h,i)=>o[h]=(r[i]??"").trim());if(o.session_id&&o.player)out.push(o)}
+  return out}
+function myCSV(){return toCSV(sortSessions(state.sessions).reverse().map(s=>toRow(s,state.player)))}
+
+/* ---------------- ME ---------------- */
+function renderMe(){renderSync();renderLBInfo();const p=state.player;$("#p_name").value=p.name||"";$("#p_grad").value=p.grad||"";$("#p_pos").value=p.pos||"";$("#p_bats").value=p.bats||"";$("#p_throws").value=p.throws||"";
+  $("#x_dl").classList.toggle("hide",!canDownload);
+  $("#x_info").textContent=`${state.sessions.length} session${state.sessions.length===1?"":"s"} on this device.`+(storageOK?"":" Warning: this browser is not saving data. Open the app in Safari or Chrome directly.")}
+$("#p_save").onclick=()=>{const name=$("#p_name").value.trim();if(!name){toast("Enter your name");return}
+  state.player={name,grad:$("#p_grad").value.trim(),pos:$("#p_pos").value.trim(),bats:$("#p_bats").value,throws:$("#p_throws").value};save();renderWho();toast("Profile saved")};
+$("#x_copy").onclick=async()=>{if(!state.player.name){toast("Save your name first");return}if(!state.sessions.length){toast("No sessions to send yet");return}
+  const t=myCSV();if(await copyText(t))toast("Copied. Paste it into a text to Coach.");else showCopyFallback(t)};
+$("#x_dl").onclick=()=>{if(!state.sessions.length){toast("No sessions yet");return}downloadText(`${(state.player.name||"player").replace(/\s+/g,"_")}_offseason.csv`,myCSV())};
+function encodeLB(obj){return "HOBANLB1:"+btoa(unescape(encodeURIComponent(JSON.stringify(obj))))}
+function decodeLB(t){const m=(t||"").trim().match(/HOBANLB1:([A-Za-z0-9+/=]+)/);if(!m)return null;try{return JSON.parse(decodeURIComponent(escape(atob(m[1]))))}catch(e){return null}}
+$("#lb_go").onclick=()=>{const lb=decodeLB($("#lb_text").value);if(!lb||!Array.isArray(lb.players)){toast("That code didn't read. Paste the whole thing.");return}
+  teamLB=lb;lsSet(LBKEY,lb);$("#lb_text").value="";renderLBInfo();toast(`Leaderboard loaded: ${lb.players.length} players`)};
+function renderLBInfo(){$("#lb_info").textContent=teamLB?`Loaded ${dateLabel(teamLB.date)} · ${teamLB.players.length} players`:""}
+$("#r_go").onclick=()=>{const rows=parseCSV($("#r_text").value);if(!rows.length){toast("Nothing found. Paste the full copied block.");return}
+  const have=new Set(state.sessions.map(s=>s.id));let added=0;rows.forEach(r=>{if(!have.has(r.session_id)){state.sessions.push(fromRow(r));added++}});
+  if(!state.player.name&&rows[0]){const r=rows[0];state.player={name:r.player,grad:r.grad,pos:r.pos,bats:r.bats,throws:r.throws};renderWho()}
+  save();$("#r_text").value="";renderMe();toast(`Restored ${added} session${added===1?"":"s"}`)};
+
+/* ---------------- TEAM (coach) ---------------- */
+let coach=lsGet(COACH,{rows:[],limit:150});
+function saveCoach(){lsSet(COACH,coach)}
+let sortKey="player",sortDir=1,detailPlayer=null;
+function teamSummary(){
+  const by={};coach.rows.forEach(r=>{(by[r.player]=by[r.player]||{prof:r,sess:[]}).sess.push(fromRow(r))});
+  return Object.entries(by).map(([name,{prof,sess}])=>{
+    const M=sess.filter(s=>s.type==="mound"),C=sess.filter(s=>s.type==="cage"),Lf=sess.filter(s=>s.type==="lift");
+    const bestOf=names=>{let b=null;Lf.forEach(s=>(s.exercises||[]).filter(e=>names.includes(e.name)).forEach(e=>{const x=exBest(e);if(x&&(b==null||x.e>b))b=x.e}));return b};
+    const P=M.reduce((a,s)=>a+(s.pitches||0),0),K=M.reduce((a,s)=>a+(s.strikes||0),0),FO=M.reduce((a,s)=>a+(s.fpo||0),0),FK=M.reduce((a,s)=>a+(s.fps||0),0);
+    const recent=M.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7);const p7=recent.reduce((a,s)=>a+(s.pitches||0),0);
+    const lowArm=recent.some(s=>s.arm!=null&&s.arm<=4);
+    const bip=C.reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(s.barrels||0),0),ld=C.reduce((a,s)=>a+(s.ld||0),0);
+    const last=sess.map(s=>s.date).filter(Boolean).sort().pop()||"";
+    const arms=M.filter(s=>s.arm!=null);
+    return{player:name,bt:`${prof.bats||"-"}/${prof.throws||"-"}`,grad:prof.grad,mound:M.length,cage:C.length,pitches:P,strikePct:pct(K,P),fpsPct:pct(FK,FO),
+      vmax:Math.max(0,...M.map(s=>s.vmax||0))||null,p7,arm:arms.length?Math.round(10*arms.reduce((a,s)=>a+s.arm,0)/arms.length)/10:null,lowArm,
+      swings:C.reduce((a,s)=>a+(s.swings||0),0),barrelPct:pct(bar,bip),ldPct:pct(ld,bip),evmax:Math.max(0,...C.map(s=>s.evmax||0))||null,
+      lift:Lf.length,l7:Lf.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length,bench:bestOf(["Bench press"]),squat:bestOf(["Back squat"]),dead:bestOf(["Deadlift","Trap bar deadlift"]),clean:bestOf(["Power clean"]),last,sess}})
+}
+function renderTeam(){if(coach.readKey&&!$("#t_readkey").value)$("#t_readkey").value=coach.readKey;
+  $("#t_limit").value=coach.limit||"";$("#t_dl").classList.toggle("hide",!canDownload);
+  const rows=teamSummary();const players=rows.length;
+  $("#t_info").textContent=`${players} player${players===1?"":"s"}, ${coach.rows.length} sessions loaded on this device.`;
+  if(!rows.length){$("#t_table").innerHTML=`<div class="empty">No player data yet. Paste a player's copied data above.</div>`;$("#t_detail").classList.add("hide");return}
+  rows.sort((a,b)=>{const x=a[sortKey],y=b[sortKey];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return-1;return(typeof x==="string"?x.localeCompare(y):x-y)*sortDir});
+  const cols=[["player","Player"],["bt","B/T"],["last","Last"],["mound","Mnd"],["pitches","Pitches"],["p7","7-day"],["strikePct","Str%"],["fpsPct","FPS%"],["vmax","Velo"],["arm","Arm"],["cage","Cage"],["swings","Swings"],["barrelPct","Brl%"],["ldPct","LD%"],["evmax","EV"],["lift","Lifts"],["l7","Lift 7d"],["bench","Bench"],["squat","Squat"],["dead","Dead"],["clean","Clean"]];
+  const lim=num(coach.limit);
+  const cell=(r,k)=>{const v=r[k];
+    if(k==="last")return v?dateLabel(v):"-";
+    if(k==="p7")return `<span class="${lim&&v>lim?"flag":""}">${v}</span>`;
+    if(k==="arm")return `<span class="${r.lowArm?"flag":""}">${v==null?"-":v}${r.lowArm?" !":""}</span>`;
+    if(k.endsWith("Pct"))return fmtPct(v);if(k==="vmax"||k==="evmax")return v?fmt1(v):"-";return esc(v??"-")};
+  $("#t_table").innerHTML=`<table><thead><tr>${cols.map(([k,l])=>`<th data-k="${k}">${l}${sortKey===k?(sortDir>0?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr class="click" data-p="${esc(r.player)}">${cols.map(([k])=>`<td>${cell(r,k)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  $$("#t_table th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=k==="player"?1:-1}renderTeam()});
+  $$("#t_table tr.click").forEach(tr=>tr.onclick=()=>{detailPlayer=tr.dataset.p;renderDetail()});
+  renderLeaderboards();
+  renderDetail();
+}
+function renderDetail(){const el=$("#t_detail");if(!detailPlayer){el.classList.add("hide");return}
+  const sess=coach.rows.filter(r=>r.player===detailPlayer).map(fromRow);if(!sess.length){el.classList.add("hide");return}
+  el.classList.remove("hide");
+  el.innerHTML=`<div class="spread"><h2>${esc(detailPlayer)}</h2><div class="row"><button class="btn light sm" id="d_rm">Remove player</button><button class="btn light sm" id="d_close">Close</button></div></div><div id="d_body"></div><h3>Sessions</h3><div id="d_list"></div>`;
+  const pool=teamPool();const me=pool.find(p=>p.n===detailPlayer);
+  buildProgress.extra=me?stackUpCard(me,pool,"Where he ranks on the team"):null;
+  buildProgress($("#d_body"),sess,detailPlayer);
+  $("#d_list").innerHTML=sortSessions(sess).map(s=>sessionCard(s,false)).join("");
+  $("#d_close").onclick=()=>{detailPlayer=null;el.classList.add("hide")};
+  $("#d_rm").onclick=()=>confirmBox(`Remove all of ${detailPlayer}'s data from the team board?`,"Remove",()=>{coach.rows=coach.rows.filter(r=>r.player!==detailPlayer);detailPlayer=null;saveCoach();renderTeam()});
+  el.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function teamPool(){const by={};coach.rows.forEach(r=>{(by[r.player]=by[r.player]||{n:r.player,g:r.grad||"",sess:[]}).sess.push(fromRow(r));if(r.grad)by[r.player].g=r.grad});
+  return Object.values(by).map(p=>({n:p.n,g:p.g,m:metricsFrom(p.sess)}))}
+function renderLeaderboards(){
+  const pool=teamPool();
+  if(!$("#lbm").options.length)$("#lbm").innerHTML=METRICS.map(x=>`<option value="${x.k}">${esc(x.label)}</option>`).join("");
+  const classes=[...new Set(pool.map(p=>p.g).filter(Boolean))].sort();const cur=$("#lbclass").value;
+  $("#lbclass").innerHTML=`<option value="">All classes</option>`+classes.map(c=>`<option value="${esc(c)}">Class of ${esc(c)}</option>`).join("");$("#lbclass").value=classes.includes(cur)?cur:"";
+  const x=METRICS.find(m=>m.k===$("#lbm").value)||METRICS[0];let mode=$("#lbmode").value;
+  if(mode==="gain"&&!x.gain){$("#lbtable").innerHTML=`<div class="empty">"Most improved" isn't tracked for this one. Pick a lift, velo, exit velo, or long toss.</div>`;return}
+  const list=pool.filter(p=>!$("#lbclass").value||p.g===$("#lbclass").value).map(p=>({p,v:p.m[x.k]?p.m[x.k][mode]:null,o:p.m[x.k]})).filter(r=>r.v!=null&&(mode!=="gain"||r.v>0)).sort((a,b)=>b.v-a.v);
+  if(!list.length){$("#lbtable").innerHTML=`<div class="empty">No one has logged this yet.</div>`;return}
+  let rank=0,prev=null;
+  $("#lbtable").innerHTML=`<table><tr><th>#</th><th style="text-align:left">Player</th><th>Class</th><th>${mode==="gain"?"Gain":"Best"}</th>${x.gain?`<th>${mode==="gain"?"First → Best":"Gain"}</th>`:""}</tr>${list.map((r,i)=>{if(r.v!==prev){rank=i+1;prev=r.v}
+    return `<tr><td style="text-align:left">${rank<=3?`<b style="color:var(--gold)">${rank}</b>`:rank}</td><td style="text-align:left">${esc(r.p.n)}</td><td>${esc(r.p.g||"-")}</td><td><b>${mode==="gain"?"+":""}${fmtM(x,r.v)}</b></td>${x.gain?`<td>${mode==="gain"?`${fmtM(x,r.o.first)} → ${fmtM(x,r.o.best)}`:(r.o.gain>0?"+"+fmtM(x,r.o.gain):"-")}</td>`:""}</tr>`}).join("")}</table>`;
+}
+["#lbm","#lbmode","#lbclass"].forEach(id=>$(id).addEventListener("change",renderLeaderboards));
+$("#lb_copy").onclick=async()=>{const pool=teamPool();if(pool.length<2){toast("Add at least two players first");return}
+  const slim=pool.map(p=>{const m={};Object.entries(p.m).forEach(([k,v])=>{if(v)m[k]={best:v.best,first:v.first??null,gain:v.gain??null}});return{n:p.n,g:p.g,m}});
+  const code=encodeLB({date:todayStr(),players:slim});if(await copyText(code))toast("Leaderboard code copied. Send it to the team.");else showCopyFallback(code)};
+$("#t_import").onclick=()=>{const rows=parseCSV($("#t_text").value);if(!rows.length){toast("Nothing found. Paste the full block the player sent.");return}
+  const idx=new Map(coach.rows.map((r,i)=>[r.player+"|"+r.session_id,i]));let add=0,upd=0;const names=new Set();
+  rows.forEach(r=>{names.add(r.player);const k=r.player+"|"+r.session_id;if(idx.has(k)){coach.rows[idx.get(k)]=r;upd++}else{idx.set(k,coach.rows.length);coach.rows.push(r);add++}});
+  saveCoach();$("#t_text").value="";renderTeam();toast(`${[...names].join(", ")}: ${add} new, ${upd} updated`)};
+$("#t_limit").addEventListener("change",()=>{coach.limit=num($("#t_limit").value);saveCoach();renderTeam()});
+$("#t_copy").onclick=async()=>{if(!coach.rows.length){toast("No team data yet");return}const t=toCSV(coach.rows);if(await copyText(t))toast("Combined CSV copied");else showCopyFallback(t)};
+$("#t_dl").onclick=()=>{if(!coach.rows.length){toast("No team data yet");return}downloadText(`hoban_offseason_team_${todayStr()}.csv`,toCSV(coach.rows))};
+$("#t_wipe").onclick=()=>confirmBox("Clear all team data on this device? Players keep their own logs.","Clear",()=>{coach.rows=[];detailPlayer=null;saveCoach();renderTeam()});
+
+/* ---------------- init ---------------- */
+/* ---------------- AUTO-SYNC to Google Sheet ---------------- */
+const SYNC_URL="https://script.google.com/macros/s/AKfycbwhQMZYdYAY-ysicj3WTd6pICbn03StLraowPwAFJoQzqfY9OKz8zFH_eGjxuzR2f9C/exec", SYNC_TEAM="hoban", SYNC_KEY="8DMEYruMWCR6";
+if(!state.synced)state.synced={};
+let syncBusy=false,syncTimer=null,syncErr="",lastSync=lsGet(KEY+".lastsync",null);
+function normDate(d){d=String(d||"").trim();let m=d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m=d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return `${m[3]}-${m[1].padStart(2,"0")}-${m[2].padStart(2,"0")}`;return d}
+function pendingSessions(){return state.sessions.filter(s=>!state.synced[s.id])}
+function syncSoon(ms){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(false),ms||400)}
+async function syncNow(manual){
+  if(syncBusy)return;const pend=pendingSessions();
+  if(!pend.length){syncErr="";if(manual)toast("Everything is already synced");renderSync();return}
+  if(!state.player.name){syncErr="Add your name in Me to sync.";renderSync();return}
+  syncBusy=true;renderSync();
+  try{
+    const res=await fetch(SYNC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({team:SYNC_TEAM,key:SYNC_KEY,rows:pend.map(s=>toRow(s,state.player))})});
+    const j=await res.json();if(!j.ok)throw new Error(j.error||"error");
+    pend.forEach(s=>state.synced[s.id]=1);save();lastSync=new Date().toISOString();lsSet(KEY+".lastsync",lastSync);syncErr="";
+    if(manual)toast(`Synced ${pend.length} session${pend.length===1?"":"s"}`);
+  }catch(e){
+    syncErr=navigator.onLine===false?"No signal. It will sync when you're back online.":(String(e&&e.message)==="bad_key"?"The sync code was rejected. Tell Coach.":"Couldn't reach the sheet. It will try again.");
+    if(manual)toast(syncErr);
+  }finally{syncBusy=false;renderSync()}
+}
+function renderSync(){const el=document.getElementById("sync_info");if(!el)return;const p=pendingSessions().length;
+  el.textContent=syncBusy?"Syncing...":(p?`${p} session${p===1?"":"s"} waiting to sync. ${syncErr}`:`All ${state.sessions.length} session${state.sessions.length===1?"":"s"} synced`+(lastSync?`, last at ${new Date(lastSync).toLocaleString([], {month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit"})}`:"")+".")}
+(function(){const b=document.getElementById("sync_now");if(b)b.onclick=()=>syncNow(true)})();
+window.addEventListener("online",()=>syncSoon(500));
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncSoon(800)});
+async function pullSheet(){
+  const k=($("#t_readkey").value||"").trim();if(!k){toast("Enter the coach sheet code first");return}
+  coach.readKey=k;saveCoach();const b=$("#t_pull");b.disabled=true;b.textContent="Pulling...";
+  try{
+    const r=await fetch(SYNC_URL+"?team="+SYNC_TEAM+"&key="+encodeURIComponent(k));const j=await r.json();
+    if(!j.ok)throw new Error(j.error||"error");
+    const rows=(j.rows||[]).filter(x=>x.player&&x.session_id).map(x=>{const o={};COLS.forEach(c=>o[c]=x[c]==null?"":String(x[c]));o.date=normDate(o.date);return o});
+    const idx=new Map(coach.rows.map((r,i)=>[r.player+"|"+r.session_id,i]));let add=0,upd=0;
+    rows.forEach(r=>{const kk=r.player+"|"+r.session_id;if(idx.has(kk)){coach.rows[idx.get(kk)]=r;upd++}else{idx.set(kk,coach.rows.length);coach.rows.push(r);add++}});
+    saveCoach();renderTeam();toast(`Sheet loaded: ${add} new, ${upd} updated`);
+  }catch(e){toast(String(e&&e.message)==="bad_key"?"That coach sheet code is wrong":"Couldn't reach the sheet. This works in the hosted version of the app.")}
+  finally{b.disabled=false;b.textContent="Pull from sheet"}
+}
+$("#t_pull").onclick=pullSheet;
+renderWho();initMound();initCage();initLift();syncSoon(1500);
+if(!state.player.name)setTimeout(()=>toast("Welcome! Add your name in the Me tab."),400);
+if(!storageOK){const n=document.createElement("div");n.className="note warn";n.textContent="This browser is not saving data (private mode?). Your log will be lost when you close it.";$("main").prepend(n)}
+})();
+</script>
+</body>
+</html>

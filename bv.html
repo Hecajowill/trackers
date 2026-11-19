@@ -139,7 +139,7 @@
     <button data-view="history">History</button>
     <button data-view="progress">Progress</button>
     <button data-view="me">Me</button>
-    <button data-view="team">Team</button>
+    <button data-view="team" id="nav_team" class="hide">Team</button>
   </nav>
 </header>
 
@@ -414,6 +414,18 @@
       <h2>Tip: put it on your home screen</h2>
       <div class="sub" style="margin:0">iPhone: Share button, then "Add to Home Screen". Android: menu, then "Add to Home screen". Always open it the same way so your log stays in one place.</div>
     </div>
+    <div class="card" id="ca_card">
+      <h2>Coach access</h2>
+      <div id="ca_locked">
+        <div class="sub">Coaches only. Enter the coach code to turn on the Team tab on this phone.</div>
+        <div class="row"><input id="ca_code" placeholder="Coach code" autocomplete="off" style="flex:1;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px"><button class="btn" id="ca_go">Unlock</button></div>
+      </div>
+      <div id="ca_open" class="hide">
+        <div class="sub">The Team tab is on for this phone.</div>
+        <button class="btn light sm" id="ca_off">Turn off coach access on this phone</button>
+      </div>
+      <div class="small" id="ca_info" style="margin-top:6px"></div>
+    </div>
   </section>
 
   <!-- ============ TEAM (COACH) ============ -->
@@ -513,7 +525,7 @@ const CAGE_DRILLS=["Top hand","Bottom hand","High tee","Low tee","Inside tee","O
 /* ---------------- nav ---------------- */
 let view="log";
 $("#nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;go(b.dataset.view)});
-function go(v){view=v;$$("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+function go(v){if(v==="team"&&!hasCoach())v="me";view=v;$$("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
   ["log","history","progress","me","team"].forEach(x=>$("#v-"+x).classList.toggle("hide",x!==v));
   if(v==="history")renderHistory();if(v==="progress")renderProgress();if(v==="me")renderMe();if(v==="team")renderTeam();
   window.scrollTo(0,0)}
@@ -1070,10 +1082,10 @@ window.addEventListener("online",()=>syncSoon(500));
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncSoon(800)});
 async function pullSheet(){
   const k=($("#t_readkey").value||"").trim();if(!k){toast("Enter the coach sheet code first");return}
-  coach.readKey=k;saveCoach();const b=$("#t_pull");b.disabled=true;b.textContent="Pulling...";
+  const b=$("#t_pull");b.disabled=true;b.textContent="Pulling...";
   try{
     const r=await fetch(SYNC_URL+"?team="+SYNC_TEAM+"&key="+encodeURIComponent(k));const j=await r.json();
-    if(!j.ok)throw new Error(j.error||"error");
+    if(!j.ok)throw new Error(j.error||"error");coach.readKey=k;
     const rows=(j.rows||[]).filter(x=>x.player&&x.session_id).map(x=>{const o={};COLS.forEach(c=>o[c]=x[c]==null?"":String(x[c]));o.date=normDate(o.date);return o});
     const idx=new Map(coach.rows.map((r,i)=>[r.player+"|"+r.session_id,i]));let add=0,upd=0;
     rows.forEach(r=>{const kk=r.player+"|"+r.session_id;if(idx.has(kk)){coach.rows[idx.get(kk)]=r;upd++}else{idx.set(kk,coach.rows.length);coach.rows.push(r);add++}});
@@ -1082,6 +1094,18 @@ async function pullSheet(){
   finally{b.disabled=false;b.textContent="Pull from sheet"}
 }
 $("#t_pull").onclick=pullSheet;
+/* ---------------- COACH ACCESS (Team tab hidden from players) ---------------- */
+function hasCoach(){try{return !!(coach&&coach.readKey)}catch(e){return false}}
+function applyCoach(){const on=hasCoach();$("#nav_team").classList.toggle("hide",!on);$("#ca_locked").classList.toggle("hide",on);$("#ca_open").classList.toggle("hide",!on)}
+$("#ca_go").onclick=async()=>{const k=($("#ca_code").value||"").trim();if(!k){toast("Enter the coach code");return}
+  const b=$("#ca_go");b.disabled=true;b.textContent="Checking...";$("#ca_info").textContent="";
+  try{const r=await fetch(SYNC_URL+"?team="+SYNC_TEAM+"&key="+encodeURIComponent(k));const j=await r.json();
+    if(!j.ok){$("#ca_info").textContent="That code isn't right.";return}
+    coach.readKey=k;saveCoach();$("#ca_code").value="";applyCoach();go("team");$("#t_readkey").value=k;pullSheet();
+  }catch(e){$("#ca_info").textContent="Couldn't check the code. Make sure you have signal and are using the team link, then try again."}
+  finally{b.disabled=false;b.textContent="Unlock"}};
+$("#ca_off").onclick=()=>confirmBox("Turn off coach access on this phone? The team data loaded here will be cleared. The Google Sheet is not affected.","Turn off",()=>{coach.readKey=null;coach.rows=[];detailPlayer=null;saveCoach();applyCoach();go("me");toast("Coach access is off")});
+applyCoach();
 /* ---------------- QUICK LOGGING BY ROUND ---------------- */
 const MODEKEY=KEY+".mode";let modes=lsGet(MODEKEY,{m:"quick",c:"quick"});
 if(!draft.m.rounds)draft.m.rounds=[];if(!draft.c.rounds)draft.c.rounds=[];if(!draft.m.roundSize)draft.m.roundSize=10;if(!draft.c.roundSize)draft.c.roundSize=10;

@@ -108,6 +108,11 @@
   .modal .box{background:#fff;border-radius:18px 18px 0 0;padding:18px;width:100%;max-width:560px;max-height:85vh;overflow:auto}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;font-weight:600;font-size:14px;display:none;z-index:60;max-width:90vw;text-align:center}
   .hide{display:none!important}
+  .qgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}
+  .qgrid button{border:0;border-radius:12px;padding:15px 0;font-size:18px;font-weight:800;background:var(--accentSoft);color:var(--accent);cursor:pointer;touch-action:manipulation}
+  .qgrid button:active{transform:scale(.95)}
+  .qstep{font-weight:700;font-size:15px;margin-top:12px}
+  .rounds{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .tag.lift{background:#ece8f6;color:#3d2f73}
   .ex{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px;background:#fbfbfc}
   .ex .exh{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -145,6 +150,7 @@
       <button data-t="mound" class="on">Mound</button>
       <button data-t="cage">Cage</button>
       <button data-t="lift">Lift</button>
+      <button data-t="tech">Rapsodo</button>
     </div>
 
     <!-- MOUND FORM -->
@@ -164,7 +170,20 @@
 
       <div class="card">
         <div class="spread"><h2>Pitch counter</h2><button class="btn light sm" id="m_undo">Undo</button></div>
-        <div class="sub">Pick the pitch, then tap Strike or Ball. Ball-strike count runs like simulated at-bats so first-pitch strikes are tracked too.</div>
+        <div class="seg" id="m_mode"><button data-m="quick" class="on">Quick: by round</button><button data-m="pitch">Every pitch</button></div>
+        <div id="m_quickMode">
+          <div class="sub">Throw a round, then tap how many were strikes. You only stop between rounds.</div>
+          <div class="small">Pitches per round</div>
+          <div class="types" id="mq_size"></div>
+          <div class="small">Pitch type for this round</div>
+          <div class="types" id="mq_types"></div>
+          <div class="qstep" id="mq_prompt"></div>
+          <div class="qgrid" id="mq_k"></div>
+          <div class="rounds" id="mq_rounds"></div>
+          <div class="live" id="mq_live"></div>
+        </div>
+        <div id="m_pitchMode" class="hide">
+        <div class="sub">Best with a partner or coach charting. Pick the pitch, then tap Strike or Ball. The ball-strike count runs like simulated at-bats so first-pitch strikes are tracked too.</div>
         <div class="types" id="m_types"></div>
         <div class="count" id="m_count"></div>
         <div class="bigtap">
@@ -174,6 +193,7 @@
         <div class="live" id="m_live"></div>
         <div class="tally" id="m_tally"></div>
         <div class="row" style="margin-top:10px"><button class="btn light sm" id="m_newbatter">New batter</button><button class="btn light sm" id="m_clear">Clear counter</button></div>
+        </div>
       </div>
 
       <div class="card">
@@ -233,7 +253,18 @@
 
       <div class="card">
         <div class="spread"><h2>Swing counter</h2><button class="btn light sm" id="c_undo">Undo</button></div>
-        <div class="sub">1. Tap Barrel if you squared it up. 2. Tap the direction. 3. Tap what the ball did. A miss or foul skips direction.</div>
+        <div class="seg" id="c_mode"><button data-m="quick" class="on">Quick: by round</button><button data-m="swing">Every swing</button></div>
+        <div id="c_quickMode">
+          <div class="sub">Take a round, then answer two quick taps. You only stop between rounds.</div>
+          <div class="small">Swings per round</div>
+          <div class="types" id="cq_size"></div>
+          <div class="qstep" id="cq_prompt"></div>
+          <div class="qgrid" id="cq_k"></div>
+          <div class="rounds" id="cq_rounds"></div>
+          <div class="live" id="cq_live"></div>
+        </div>
+        <div id="c_swingMode" class="hide">
+        <div class="sub">Best with a partner charting. 1. Tap Barrel if you squared it up. 2. Tap the direction. 3. Tap what the ball did. A miss or foul skips direction.</div>
         <div class="types">
           <button class="chipbtn gold" id="c_barrel">Barrel</button>
           <span style="width:8px"></span>
@@ -250,6 +281,7 @@
           <button data-res="X" class="miss">Swing &amp; miss</button>
         </div>
         <div class="live" id="c_live"></div>
+        </div>
         <div class="row" style="margin-top:10px"><button class="btn light sm" id="c_clear">Clear counter</button></div>
       </div>
 
@@ -284,6 +316,16 @@
         <label class="f" style="margin-top:12px">Notes<textarea id="c_notes" placeholder="Approach, what clicked, what to fix"></textarea></label>
       </div>
       <button class="btn full" id="c_save">Save cage session</button>
+    </div>
+
+    <!-- RAPSODO UPLOAD -->
+    <div id="techForm" class="hide">
+      <div class="card">
+        <h2>Upload a Rapsodo session</h2>
+        <div class="sub">In the Rapsodo app or Rapsodo Cloud, export the session as a CSV file and save it to your phone. Then tap the button below and pick that file. Pitching and hitting files both work. You do not need to upload any video.</div>
+        <label class="btn full" style="display:block;text-align:center;cursor:pointer">Choose Rapsodo CSV file<input type="file" id="rp_file" accept=".csv,text/csv,text/plain" style="display:none"></label>
+        <div id="rp_preview" style="margin-top:12px"></div>
+      </div>
     </div>
 
     <!-- LIFT FORM -->
@@ -480,7 +522,7 @@ function renderWho(){$("#whoLabel").textContent=state.player.name||"Set your nam
 let logType="mound";
 $("#logSeg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;logType=b.dataset.t;
   $$("#logSeg button").forEach(x=>x.classList.toggle("on",x===b));
-  $("#moundForm").classList.toggle("hide",logType!=="mound");$("#cageForm").classList.toggle("hide",logType!=="cage");$("#liftForm").classList.toggle("hide",logType!=="lift")});
+  $("#moundForm").classList.toggle("hide",logType!=="mound");$("#cageForm").classList.toggle("hide",logType!=="cage");$("#liftForm").classList.toggle("hide",logType!=="lift");$("#techForm").classList.toggle("hide",logType!=="tech")});
 
 /* ---------------- draft (survives refresh mid-bullpen) ---------------- */
 let draft=lsGet(DRAFT,null)||{m:{ptype:"FB",pitches:[],drills:{},arm:null,rpe:null},c:{barrel:false,dir:null,swings:[],drills:{}}};
@@ -524,7 +566,7 @@ function renderArm(){scaleButtons($("#m_arm"),draft.m.arm,i=>{draft.m.arm=i;save
 function renderWeekNote(){const wk=state.sessions.filter(s=>s.type==="mound"&&s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7);const p=wk.reduce((a,s)=>a+(num(s.pitches)||0),0);
   $("#m_week").textContent=`Last 7 days: ${wk.length} throwing session${wk.length===1?"":"s"}, ${p} pitches logged.`}
 
-function resetMound(){draft.m={ptype:draft.m.ptype||"FB",pitches:[],drills:{},arm:null,rpe:null};saveDraft();
+function resetMound(){draft.m={ptype:draft.m.ptype||"FB",pitches:[],rounds:[],drills:{},arm:null,rpe:null};saveDraft();
   ["#m_pitches","#m_strikes","#m_fpo","#m_fps","#m_vmax","#m_vavg","#m_ltft","#m_notes"].forEach(s=>$(s).value="");$("#m_date").value=todayStr();
   initMound()}
 function initMound(){ $("#m_date").value=$("#m_date").value||todayStr();renderMoundTypes();renderMoundCounter(draft.m.pitches.length>0);
@@ -536,7 +578,7 @@ $("#m_save").onclick=()=>{
   if(strikes!=null&&pitches!=null&&strikes>pitches){toast("Strikes can't be more than pitches");return}
   const hasAny=pitches||num($("#m_vmax").value)||num($("#m_ltft").value)||Object.keys(draft.m.drills).length;
   if(!hasAny){toast("Log pitches, velo, distance, or a drill first");return}
-  const mix={};draft.m.pitches.forEach(p=>{mix[p.t]=mix[p.t]||{n:0,k:0};mix[p.t].n++;if(p.s)mix[p.t].k++});
+  const mix={};draft.m.pitches.forEach(p=>{mix[p.t]=mix[p.t]||{n:0,k:0};mix[p.t].n++;if(p.s)mix[p.t].k++});(draft.m.rounds||[]).forEach(r=>{mix[r.t]=mix[r.t]||{n:0,k:0};mix[r.t].n+=r.n;mix[r.t].k+=r.k});
   const s={id:uid(),type:"mound",date:$("#m_date").value||todayStr(),kind:$("#m_kind").value,
     pitches,strikes,fpo:num($("#m_fpo").value),fps:num($("#m_fps").value),mix,
     vmax:num($("#m_vmax").value),vavg:num($("#m_vavg").value),ltft:num($("#m_ltft").value),
@@ -563,16 +605,17 @@ $$("[data-res]").forEach(b=>b.onclick=()=>{const r=b.dataset.res;const contact=[
 $("#c_undo").onclick=()=>{draft.c.swings.pop();saveDraft();renderCageCounter(true)};
 $("#c_clear").onclick=()=>{if(!draft.c.swings.length)return;confirmBox("Clear the swing counter?","Clear",()=>{draft.c.swings=[];saveDraft();renderCageCounter(true)})};
 const CAGE_NUM=["swings","barrels","miss","ld","gb","fb","pu","foul","pull","mid","oppo","evmax","evavg","mph"];
-function resetCage(){draft.c={barrel:false,dir:null,swings:[],drills:{}};saveDraft();CAGE_NUM.concat(["notes"]).forEach(k=>$("#c_"+k).value="");$("#c_date").value=todayStr();initCage()}
+function resetCage(){draft.c={barrel:false,dir:null,swings:[],rounds:[],drills:{}};cqPend=null;saveDraft();CAGE_NUM.concat(["notes"]).forEach(k=>$("#c_"+k).value="");$("#c_date").value=todayStr();initCage()}
 function initCage(){$("#c_date").value=$("#c_date").value||todayStr();renderCageCounter(draft.c.swings.length>0);renderDrills($("#c_drills"),$("#c_drillReps"),CAGE_DRILLS,draft.c.drills,"reps")}
 $("#c_save").onclick=()=>{
   if(!state.player.name){toast("Add your name in the Me tab first");go("me");return}
   const s={id:uid(),type:"cage",date:$("#c_date").value||todayStr(),kind:$("#c_kind").value};
   CAGE_NUM.forEach(k=>s[k]=num($("#c_"+k).value));
+  s.bip_total=(draft.c.rounds&&draft.c.rounds.length&&!draft.c.swings.length)?num($("#c_swings").value):null;
   const bip=(s.ld||0)+(s.gb||0)+(s.fb||0)+(s.pu||0);
   if(s.swings==null&&bip)s.swings=bip+(s.foul||0)+(s.miss||0);
   if(!s.swings&&!s.evmax&&!Object.keys(draft.c.drills).length){toast("Log swings, exit velo, or a drill first");return}
-  if(s.barrels!=null&&s.barrels>bip&&bip){toast("Barrels can't be more than balls in play");return}
+  const bipC=s.bip_total!=null?s.bip_total:bip;if(s.barrels!=null&&s.barrels>bipC&&bipC){toast("Barrels can't be more than balls in play");return}
   s.drills={...draft.c.drills};s.notes=$("#c_notes").value.trim();s.saved=new Date().toISOString();
   state.sessions.push(s);save();syncSoon();toast("Cage session saved");resetCage();
 };
@@ -629,6 +672,9 @@ const METRICS=[...LB_LIFTS.map(([k,l])=>({k,label:l+" (est. max)",unit:" lb",gai
   {k:"total",label:"Big 3 total (bench + squat + dead)",unit:" lb",gain:true},
   {k:"velo",label:"Top velo",unit:" mph",gain:true,dec:1},
   {k:"ev",label:"Top exit velo",unit:" mph",gain:true,dec:1},
+  {k:"evavg",label:"Avg exit velo (Rapsodo)",unit:" mph",gain:true,dec:1},
+  {k:"hardhit",label:"Hard-hit % (85+ mph, Rapsodo)",unit:"%",gain:false},
+  {k:"fbspin",label:"Fastball spin (Rapsodo avg)",unit:" rpm",gain:true},
   {k:"ltft",label:"Long toss distance",unit:" ft",gain:true},
   {k:"strike",label:"Strike % (50+ pitches)",unit:"%",gain:false},
   {k:"barrel",label:"Barrel % (25+ balls in play)",unit:"%",gain:false},
@@ -641,9 +687,9 @@ function metricsFrom(sessions){
   const out={},L=sessions.filter(s=>s.type==="lift"),M=sessions.filter(s=>s.type==="mound"),C=sessions.filter(s=>s.type==="cage");
   LB_LIFTS.forEach(([k,,names])=>{const pts=[];L.forEach(s=>{let b=null;(s.exercises||[]).filter(e=>names.includes(e.name)).forEach(e=>{const x=exBest(e);if(x&&(b==null||x.e>b))b=x.e});if(b!=null)pts.push({d:s.date,v:b})});out[k]=series(pts)});
   if(out.bench&&out.squat&&out.dead){const f=out.bench.first+out.squat.first+out.dead.first,b=out.bench.best+out.squat.best+out.dead.best,l=out.bench.last+out.squat.last+out.dead.last;out.total={first:f,best:b,last:l,gain:b-f}}
-  out.velo=series(M.map(s=>({d:s.date,v:num(s.vmax)})));out.ltft=series(M.map(s=>({d:s.date,v:num(s.ltft)})));out.ev=series(C.map(s=>({d:s.date,v:num(s.evmax)})));
-  const P=M.reduce((a,s)=>a+(num(s.pitches)||0),0),K=M.reduce((a,s)=>a+(num(s.strikes)||0),0);if(P>=50){const v=pct(K,P);out.strike={first:null,best:v,last:v,gain:null}}
-  const bip=C.reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(num(s.barrels)||0),0);if(bip>=25){const v=pct(bar,bip);out.barrel={first:null,best:v,last:v,gain:null}}
+  out.velo=series(M.map(s=>({d:s.date,v:num(s.vmax)})));out.ltft=series(M.map(s=>({d:s.date,v:num(s.ltft)})));out.ev=series(C.map(s=>({d:s.date,v:num(s.evmax)})));out.evavg=series(C.filter(s=>s.tech_source).map(s=>({d:s.date,v:num(s.evavg)})));out.fbspin=series(M.map(s=>({d:s.date,v:num(s.fb_spin_avg)})));{const h=series(C.map(s=>({d:s.date,v:num(s.hard_hit_pct)})));if(h)out.hardhit={first:null,best:h.best,last:h.last,gain:null}}
+  const P=M.reduce((a,s)=>a+(zp(s)||0),0),K=M.reduce((a,s)=>a+(num(s.strikes)||0),0);if(P>=50){const v=pct(K,P);out.strike={first:null,best:v,last:v,gain:null}}
+  const bip=C.filter(s=>num(s.barrels)!=null).reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(num(s.barrels)||0),0);if(bip>=25){const v=pct(bar,bip);out.barrel={first:null,best:v,last:v,gain:null}}
   if(L.length)out.lifts={best:L.length,gain:null};if(sessions.length)out.sessions={best:sessions.length,gain:null};
   return out}
 // rank helper: higher is better
@@ -673,10 +719,11 @@ function stackUpCard(me,pool,title){
   return d}
 
 /* ---------------- derived metrics (display only) ---------------- */
-function moundStats(s){const p=num(s.pitches),k=num(s.strikes);return{strikePct:p?pct(k||0,p):null,fpsPct:num(s.fpo)?pct(num(s.fps)||0,num(s.fpo)):null}}
-function cageStats(s){const bip=(num(s.ld)||0)+(num(s.gb)||0)+(num(s.fb)||0)+(num(s.pu)||0);const dirN=(num(s.pull)||0)+(num(s.mid)||0)+(num(s.oppo)||0);
-  return{bip,barrelPct:bip?pct(num(s.barrels)||0,bip):null,ldPct:bip?pct(num(s.ld)||0,bip):null,gbPct:bip?pct(num(s.gb)||0,bip):null,fbPct:bip?pct(num(s.fb)||0,bip):null,puPct:bip?pct(num(s.pu)||0,bip):null,
-    missPct:num(s.swings)?pct(num(s.miss)||0,num(s.swings)):null,pullPct:dirN?pct(num(s.pull)||0,dirN):null,midPct:dirN?pct(num(s.mid)||0,dirN):null,oppoPct:dirN?pct(num(s.oppo)||0,dirN):null}}
+function zp(s){const z=num(s.zone_n);return z!=null?z:num(s.pitches)}
+function moundStats(s){const p=zp(s),k=num(s.strikes);return{strikePct:p?pct(k||0,p):null,fpsPct:num(s.fpo)?pct(num(s.fps)||0,num(s.fpo)):null}}
+function cageStats(s){const bip=num(s.bip_total)!=null?num(s.bip_total):(num(s.ld)||0)+(num(s.gb)||0)+(num(s.fb)||0)+(num(s.pu)||0);const dirN=(num(s.pull)||0)+(num(s.mid)||0)+(num(s.oppo)||0);
+  return{bip,barrelPct:(bip&&num(s.barrels)!=null)?pct(num(s.barrels),bip):null,ldPct:bip?pct(num(s.ld)||0,bip):null,gbPct:bip?pct(num(s.gb)||0,bip):null,fbPct:bip?pct(num(s.fb)||0,bip):null,puPct:bip?pct(num(s.pu)||0,bip):null,
+    missPct:(num(s.swings)&&num(s.miss)!=null)?pct(num(s.miss),num(s.swings)):null,pullPct:dirN?pct(num(s.pull)||0,dirN):null,midPct:dirN?pct(num(s.mid)||0,dirN):null,oppoPct:dirN?pct(num(s.oppo)||0,dirN):null}}
 function drillText(d){return Object.entries(d||{}).map(([k,v])=>v?`${k} x${v}`:k).join(", ")}
 
 /* ---------------- HISTORY ---------------- */
@@ -688,6 +735,7 @@ function sessionCard(s,canDelete){
     line=[s.pitches!=null?`${s.pitches} pitches`:null,m.strikePct!=null?`${fmtPct(m.strikePct)} strikes`:null,m.fpsPct!=null?`${fmtPct(m.fpsPct)} 1st-pitch K`:null,s.vmax?`${fmt1(+s.vmax)} max`:null,s.ltft?`${s.ltft} ft`:null].filter(Boolean).join(" · ");
     const mix=s.mix&&Object.keys(s.mix).length?PTYPES.filter(([k])=>s.mix[k]).map(([k])=>`${k} ${s.mix[k].k}/${s.mix[k].n}`).join(", "):"";
     extra=[mix,s.arm?`Arm ${s.arm}/10`:null,s.rpe?`Effort ${s.rpe}/10`:null].filter(Boolean).join(" · ");
+    if(s.tech_pitch_summary)extra=(extra?extra+"\n":"")+"Rapsodo: "+s.tech_pitch_summary.split(" | ").join("\n");
   }else if(s.type==="lift"){
     const ex=s.exercises||[];
     line=[`${ex.length} exercise${ex.length===1?"":"s"}`,`${ex.reduce((a,e)=>a+e.sets.length,0)} sets`,s.bw?`BW ${s.bw}`:null,s.rpe?`Effort ${s.rpe}/10`:null].filter(Boolean).join(" · ");
@@ -695,6 +743,7 @@ function sessionCard(s,canDelete){
   }else{const c=cageStats(s);
     line=[s.swings!=null?`${s.swings} swings`:null,c.barrelPct!=null?`${fmtPct(c.barrelPct)} barrel`:null,c.ldPct!=null?`${fmtPct(c.ldPct)} LD`:null,s.evmax?`${fmt1(+s.evmax)} max EV`:null].filter(Boolean).join(" · ");
     extra=c.pullPct!=null?`Pull ${fmtPct(c.pullPct)} / Mid ${fmtPct(c.midPct)} / Oppo ${fmtPct(c.oppoPct)}`:"";
+    if(s.tech_source){const t=[num(s.evavg)!=null?`avg EV ${fmt1(+s.evavg)}`:null,num(s.la_avg)!=null?`avg LA ${fmt1(+s.la_avg)}°`:null,num(s.hard_hit_pct)!=null?`hard-hit ${fmtPct(+s.hard_hit_pct)}`:null,num(s.dist_max)!=null?`max dist ${Math.round(+s.dist_max)} ft`:null].filter(Boolean).join(" · ");if(t)extra=(extra?extra+"\n":"")+"Rapsodo: "+t}
   }
   const dr=drillText(s.drills);
   return `<div class="hist"><div class="spread"><div><span class="tag ${s.type}">${s.type.toUpperCase()}</span><span class="t">${esc(s.kind||"")}</span></div><div class="m">${esc(dateLabel(s.date))}</div></div>
@@ -747,12 +796,12 @@ function buildProgress(target,sessions,who){
   const C=sessions.filter(s=>s.type==="cage").sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const Lf=sessions.filter(s=>s.type==="lift").sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   if(!sessions.length){target.innerHTML=`<div class="empty">No sessions logged yet${who?" for "+esc(who):""}.</div>`;return}
-  const totP=M.reduce((a,s)=>a+(num(s.pitches)||0),0),totK=M.reduce((a,s)=>a+(num(s.strikes)||0),0);
+  const totP=M.reduce((a,s)=>a+(num(s.pitches)||0),0),totZ=M.reduce((a,s)=>a+(zp(s)||0),0),totK=M.reduce((a,s)=>a+(num(s.strikes)||0),0);
   const vmax=Math.max(0,...M.map(s=>num(s.vmax)||0)),evmax=Math.max(0,...C.map(s=>num(s.evmax)||0));
   const totSw=C.reduce((a,s)=>a+(num(s.swings)||0),0);
-  const bipAll=C.reduce((a,s)=>a+cageStats(s).bip,0),barAll=C.reduce((a,s)=>a+(num(s.barrels)||0),0);
+  const bipAll=C.filter(s=>num(s.barrels)!=null).reduce((a,s)=>a+cageStats(s).bip,0),barAll=C.reduce((a,s)=>a+(num(s.barrels)||0),0);
   const k=document.createElement("div");k.className="kpis";
-  k.innerHTML=[["Sessions",sessions.length],["Pitches",totP],["Strike %",fmtPct(pct(totK,totP))],["Top velo",vmax?fmt1(vmax):"-"],["Swings",totSw],["Barrel %",fmtPct(pct(barAll,bipAll))],["Top EV",evmax?fmt1(evmax):"-"],["Last 7 days",sessions.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length+" sess."]]
+  k.innerHTML=[["Sessions",sessions.length],["Pitches",totP],["Strike %",fmtPct(pct(totK,totZ))],["Top velo",vmax?fmt1(vmax):"-"],["Swings",totSw],["Barrel %",fmtPct(pct(barAll,bipAll))],["Top EV",evmax?fmt1(evmax):"-"],["Last 7 days",sessions.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length+" sess."]]
     .concat(Lf.length?[["Lifts",Lf.length],["Lifts last 7 days",Lf.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length]]:[])
     .map(([k,v])=>`<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("");
   target.appendChild(k);
@@ -761,7 +810,7 @@ function buildProgress(target,sessions,who){
   const green="#43190e",gold="#c08a0a";
   if(M.length){
     let c=chartCard("Strike % by session","Goal: trend up and stay steady");target.appendChild(c);
-    chart(c.querySelector(".c"),M.filter(s=>num(s.pitches)).map(s=>{const v=moundStats(s).strikePct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.strikes}/${s.pitches})`}}),{color:green,min:0,max:100,unit:"%",title:"Strike percent"});
+    chart(c.querySelector(".c"),M.filter(s=>num(s.pitches)).map(s=>{const v=moundStats(s).strikePct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.strikes}/${zp(s)})`}}),{color:green,min:0,max:100,unit:"%",title:"Strike percent"});
     const fp=M.filter(s=>num(s.fpo));if(fp.length){c=chartCard("First-pitch strike % by session");target.appendChild(c);
       chart(c.querySelector(".c"),fp.map(s=>{const v=moundStats(s).fpsPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.fps}/${s.fpo})`}}),{color:green,min:0,max:100,unit:"%"})}
     const vv=M.filter(s=>num(s.vmax));if(vv.length){c=chartCard("Max velo by session (mph)");target.appendChild(c);
@@ -803,10 +852,29 @@ function buildProgress(target,sessions,who){
     const bw=Lf.filter(s=>s.bw);if(bw.length>1){const c3=chartCard("Body weight (lb)");target.appendChild(c3);
       chart(c3.querySelector(".c"),bw.map(s=>({label:dateLabel(s.date),y:s.bw,tip:`${dateLabel(s.date)} · ${s.bw} lb`})),{color:navy})}
   }
+  const MT=M.filter(s=>s.tech_source),CT=C.filter(s=>s.tech_source);
+  if(MT.length){
+    const last=MT[MT.length-1];const c=document.createElement("div");c.className="card";
+    const by=last.tech&&last.tech.byType;
+    c.innerHTML=`<h2>Rapsodo pitch profile (${esc(dateLabel(last.date))})</h2><div class="sub">Averages by pitch type from the latest uploaded bullpen. VB and HB are break in inches; extension is in feet.</div>`+
+      (by?`<div class="tablewrap"><table><tr><th>Pitch</th><th>#</th><th>Velo</th><th>Max</th><th>Spin</th><th>Eff%</th><th>VB</th><th>HB</th><th>Ext</th></tr>${Object.entries(by).sort((a,b)=>b[1].n-a[1].n).map(([t,v])=>`<tr><td>${esc(t)}</td><td>${v.n}</td><td>${fmt1(v.velo)}</td><td>${fmt1(v.veloMax)}</td><td>${v.spin??"-"}</td><td>${v.eff??"-"}</td><td>${fmt1(v.vb)}</td><td>${fmt1(v.hb)}</td><td>${fmt1(v.ext)}</td></tr>`).join("")}</table></div>`
+        :`<div class="m">${esc((last.tech_pitch_summary||"").split(" | ").join(" / "))}</div>`);
+    target.appendChild(c);
+    const sp=MT.filter(s=>num(s.fb_spin_avg));if(sp.length){const c2=chartCard("Fastball spin rate by session (rpm)","Rapsodo average");target.appendChild(c2);
+      chart(c2.querySelector(".c"),sp.map(s=>({label:dateLabel(s.date),y:+s.fb_spin_avg,tip:`${dateLabel(s.date)} · ${s.fb_spin_avg} rpm${num(s.fb_ivb)!=null?", IVB "+s.fb_ivb:""}`})),{color:green})}
+  }
+  if(CT.length){
+    const av=CT.filter(s=>num(s.evavg));if(av.length){const c1=chartCard("Average exit velo by session (mph)","Rapsodo, balls with a reading");target.appendChild(c1);
+      chart(c1.querySelector(".c"),av.map(s=>({label:dateLabel(s.date),y:+s.evavg,tip:`${dateLabel(s.date)} · avg ${s.evavg}, max ${s.evmax}`})),{color:gold})}
+    const hh=CT.filter(s=>num(s.hard_hit_pct)!=null);if(hh.length){const c2=chartCard("Hard-hit % by session","Balls hit 85 mph or harder");target.appendChild(c2);
+      chart(c2.querySelector(".c"),hh.map(s=>({label:dateLabel(s.date),y:+s.hard_hit_pct,tip:`${dateLabel(s.date)} · ${s.hard_hit_pct}%`})),{color:gold,min:0,max:100,unit:"%"})}
+    const lastT=[...CT].reverse().find(s=>s.tech&&s.tech.pts&&s.tech.pts.length);
+    if(lastT){const c3=chartCard(`Exit velo vs. launch angle (${dateLabel(lastT.date)})`,"Each dot is one tracked ball. The shaded band is the 8 to 32 degree sweet spot.");target.appendChild(c3);evlaChart(c3.querySelector(".c"),lastT.tech.pts)}
+  }
   if(C.length){
     const cs=C.filter(s=>cageStats(s).bip);
     let c=chartCard("Barrel % by session","Share of balls in play squared up");target.appendChild(c);
-    chart(c.querySelector(".c"),cs.map(s=>{const v=cageStats(s).barrelPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.barrels||0}/${cageStats(s).bip})`}}),{color:gold,min:0,max:100,unit:"%"});
+    chart(c.querySelector(".c"),cs.filter(s=>cageStats(s).barrelPct!=null).map(s=>{const v=cageStats(s).barrelPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% (${s.barrels||0}/${cageStats(s).bip})`}}),{color:gold,min:0,max:100,unit:"%"});
     c=chartCard("Line drive % by session");target.appendChild(c);
     chart(c.querySelector(".c"),cs.map(s=>{const v=cageStats(s).ldPct;return{label:dateLabel(s.date),y:v,tip:`${dateLabel(s.date)} · ${v}% LD`}}),{color:gold,min:0,max:100,unit:"%"});
     const ev=C.filter(s=>num(s.evmax));if(ev.length){c=chartCard("Max exit velo by session (mph)");target.appendChild(c);
@@ -837,8 +905,9 @@ const COLS=["player","grad","pos","bats","throws","session_id","type","date","ki
  "velo_max","velo_avg","longtoss_ft","arm_feel","effort",
  "swings","barrels","line_drives","ground_balls","fly_balls","pop_ups","fouls","misses","pull","middle","oppo","ev_max","ev_avg","pitch_mph",
  "bodyweight","lifts","lift_sets","lift_reps","lift_volume",
- "drills","notes","saved_at"];
-function toRow(s,p){const r={player:p.name,grad:p.grad,pos:p.pos,bats:p.bats,throws:p.throws,session_id:s.id,type:s.type,date:s.date,kind:s.kind,drills:drillText(s.drills),notes:s.notes,saved_at:s.saved};
+ "drills","notes","saved_at",
+ "zone_n","tech_source","hard_hit_pct","sweet_spot_pct","la_avg","dist_max","fb_velo_avg","fb_spin_avg","fb_ivb","fb_hb","extension_avg","tech_pitch_summary","contact_total"];
+function toRow(s,p){const r={contact_total:s.bip_total,zone_n:s.zone_n,tech_source:s.tech_source,hard_hit_pct:s.hard_hit_pct,sweet_spot_pct:s.sweet_spot_pct,la_avg:s.la_avg,dist_max:s.dist_max,fb_velo_avg:s.fb_velo_avg,fb_spin_avg:s.fb_spin_avg,fb_ivb:s.fb_ivb,fb_hb:s.fb_hb,extension_avg:s.extension_avg,tech_pitch_summary:s.tech_pitch_summary,player:p.name,grad:p.grad,pos:p.pos,bats:p.bats,throws:p.throws,session_id:s.id,type:s.type,date:s.date,kind:s.kind,drills:drillText(s.drills),notes:s.notes,saved_at:s.saved};
   if(s.type==="mound"){Object.assign(r,{pitches:s.pitches,strikes:s.strikes,balls:(s.pitches!=null&&s.strikes!=null)?s.pitches-s.strikes:"",fp_batters:s.fpo,fp_strikes:s.fps,velo_max:s.vmax,velo_avg:s.vavg,longtoss_ft:s.ltft,arm_feel:s.arm,effort:s.rpe});
     PTYPES.forEach(([k])=>{const m=(s.mix||{})[k];r[`pt_${k.toLowerCase()}_n`]=m?m.n:"";r[`pt_${k.toLowerCase()}_k`]=m?m.k:""})}
   else if(s.type==="lift"){Object.assign(r,{effort:s.rpe,bodyweight:s.bw,
@@ -847,7 +916,7 @@ function toRow(s,p){const r={player:p.name,grad:p.grad,pos:p.pos,bats:p.bats,thr
   else Object.assign(r,{swings:s.swings,barrels:s.barrels,line_drives:s.ld,ground_balls:s.gb,fly_balls:s.fb,pop_ups:s.pu,fouls:s.foul,misses:s.miss,pull:s.pull,middle:s.mid,oppo:s.oppo,ev_max:s.evmax,ev_avg:s.evavg,pitch_mph:s.mph});
   return r}
 function parseDrills(t){const d={};(t||"").split(/,\s*/).filter(Boolean).forEach(x=>{const m=x.match(/^(.*?)\s+x(\d+)$/);if(m)d[m[1]]=m[2];else d[x]=""});return d}
-function fromRow(r){const s={id:r.session_id,type:r.type,date:normDate(r.date),kind:r.kind,drills:parseDrills(r.drills),notes:r.notes||"",saved:r.saved_at||""};
+function fromRow(r){const s={bip_total:num(r.contact_total),zone_n:num(r.zone_n),tech_source:r.tech_source||"",hard_hit_pct:num(r.hard_hit_pct),sweet_spot_pct:num(r.sweet_spot_pct),la_avg:num(r.la_avg),dist_max:num(r.dist_max),fb_velo_avg:num(r.fb_velo_avg),fb_spin_avg:num(r.fb_spin_avg),fb_ivb:num(r.fb_ivb),fb_hb:num(r.fb_hb),extension_avg:num(r.extension_avg),tech_pitch_summary:r.tech_pitch_summary||"",id:r.session_id,type:r.type,date:normDate(r.date),kind:r.kind,drills:parseDrills(r.drills),notes:r.notes||"",saved:r.saved_at||""};
   if(r.type==="mound"){Object.assign(s,{pitches:num(r.pitches),strikes:num(r.strikes),fpo:num(r.fp_batters),fps:num(r.fp_strikes),vmax:num(r.velo_max),vavg:num(r.velo_avg),ltft:num(r.longtoss_ft),arm:num(r.arm_feel),rpe:num(r.effort),mix:{}});
     PTYPES.forEach(([k])=>{const n=num(r[`pt_${k.toLowerCase()}_n`]);if(n)s.mix[k]={n,k:num(r[`pt_${k.toLowerCase()}_k`])||0}})}
   else if(r.type==="lift"){Object.assign(s,{rpe:num(r.effort),bw:num(r.bodyweight),exercises:(r.lifts||"").split(" | ").filter(Boolean).map(chunk=>{const k=chunk.indexOf(":");
@@ -900,15 +969,15 @@ function teamSummary(){
   return Object.entries(by).map(([name,{prof,sess}])=>{
     const M=sess.filter(s=>s.type==="mound"),C=sess.filter(s=>s.type==="cage"),Lf=sess.filter(s=>s.type==="lift");
     const bestOf=names=>{let b=null;Lf.forEach(s=>(s.exercises||[]).filter(e=>names.includes(e.name)).forEach(e=>{const x=exBest(e);if(x&&(b==null||x.e>b))b=x.e}));return b};
-    const P=M.reduce((a,s)=>a+(s.pitches||0),0),K=M.reduce((a,s)=>a+(s.strikes||0),0),FO=M.reduce((a,s)=>a+(s.fpo||0),0),FK=M.reduce((a,s)=>a+(s.fps||0),0);
+    const P=M.reduce((a,s)=>a+(s.pitches||0),0),Z=M.reduce((a,s)=>a+(zp(s)||0),0),K=M.reduce((a,s)=>a+(s.strikes||0),0),FO=M.reduce((a,s)=>a+(s.fpo||0),0),FK=M.reduce((a,s)=>a+(s.fps||0),0);
     const recent=M.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7);const p7=recent.reduce((a,s)=>a+(s.pitches||0),0);
     const lowArm=recent.some(s=>s.arm!=null&&s.arm<=4);
-    const bip=C.reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(s.barrels||0),0),ld=C.reduce((a,s)=>a+(s.ld||0),0);
+    const bipB=C.filter(s=>num(s.barrels)!=null).reduce((a,s)=>a+cageStats(s).bip,0),bip=C.reduce((a,s)=>a+cageStats(s).bip,0),bar=C.reduce((a,s)=>a+(s.barrels||0),0),ld=C.reduce((a,s)=>a+(s.ld||0),0);
     const last=sess.map(s=>s.date).filter(Boolean).sort().pop()||"";
     const arms=M.filter(s=>s.arm!=null);
-    return{player:name,bt:`${prof.bats||"-"}/${prof.throws||"-"}`,grad:prof.grad,mound:M.length,cage:C.length,pitches:P,strikePct:pct(K,P),fpsPct:pct(FK,FO),
+    return{player:name,bt:`${prof.bats||"-"}/${prof.throws||"-"}`,grad:prof.grad,mound:M.length,cage:C.length,pitches:P,strikePct:pct(K,Z),fpsPct:pct(FK,FO),
       vmax:Math.max(0,...M.map(s=>s.vmax||0))||null,p7,arm:arms.length?Math.round(10*arms.reduce((a,s)=>a+s.arm,0)/arms.length)/10:null,lowArm,
-      swings:C.reduce((a,s)=>a+(s.swings||0),0),barrelPct:pct(bar,bip),ldPct:pct(ld,bip),evmax:Math.max(0,...C.map(s=>s.evmax||0))||null,
+      swings:C.reduce((a,s)=>a+(s.swings||0),0),barrelPct:pct(bar,bipB),ldPct:pct(ld,bip),evmax:Math.max(0,...C.map(s=>s.evmax||0))||null,
       lift:Lf.length,l7:Lf.filter(s=>s.date&&daysAgo(s.date)>=0&&daysAgo(s.date)<7).length,bench:bestOf(["Bench press"]),squat:bestOf(["Back squat"]),dead:bestOf(["Deadlift","Trap bar deadlift"]),clean:bestOf(["Power clean"]),last,sess}})
 }
 function renderTeam(){if(coach.readKey&&!$("#t_readkey").value)$("#t_readkey").value=coach.readKey;
@@ -1013,6 +1082,145 @@ async function pullSheet(){
   finally{b.disabled=false;b.textContent="Pull from sheet"}
 }
 $("#t_pull").onclick=pullSheet;
+/* ---------------- QUICK LOGGING BY ROUND ---------------- */
+const MODEKEY=KEY+".mode";let modes=lsGet(MODEKEY,{m:"quick",c:"quick"});
+if(!draft.m.rounds)draft.m.rounds=[];if(!draft.c.rounds)draft.c.rounds=[];if(!draft.m.roundSize)draft.m.roundSize=10;if(!draft.c.roundSize)draft.c.roundSize=10;
+let cqPend=null;
+function setMode(which,m){modes[which]=m;lsSet(MODEKEY,modes);applyModes()}
+function applyModes(){
+  $$("#m_mode button").forEach(b=>b.classList.toggle("on",b.dataset.m===modes.m));$("#m_quickMode").classList.toggle("hide",modes.m!=="quick");$("#m_pitchMode").classList.toggle("hide",modes.m==="quick");
+  $$("#c_mode button").forEach(b=>b.classList.toggle("on",b.dataset.m===modes.c));$("#c_quickMode").classList.toggle("hide",modes.c!=="quick");$("#c_swingMode").classList.toggle("hide",modes.c==="quick");
+}
+$("#m_mode").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setMode("m",b.dataset.m)});
+$("#c_mode").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setMode("c",b.dataset.m)});
+function chips(el,vals,cur,onPick,labelFn){el.innerHTML="";vals.forEach(v=>{const b=document.createElement("button");b.className="chipbtn"+(v===cur?" on":"");b.textContent=labelFn?labelFn(v):v;b.onclick=()=>onPick(v);el.appendChild(b)})}
+function numGrid(el,max,onPick){el.innerHTML="";for(let i=0;i<=max;i++){const b=document.createElement("button");b.textContent=i;b.onclick=()=>{onPick(i);if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}};el.appendChild(b)}}
+function statTiles(el,arr){el.innerHTML=arr.map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`).join("")}
+function renderMQ(){
+  const R=draft.m.rounds;
+  chips($("#mq_size"),[5,8,10,15,20],draft.m.roundSize,v=>{draft.m.roundSize=v;saveDraft();renderMQ()});
+  chips($("#mq_types"),PTYPES.map(p=>p[0]),draft.m.ptype,v=>{draft.m.ptype=v;saveDraft();renderMQ();renderMoundTypes()},v=>PTYPES.find(p=>p[0]===v)[1]);
+  $("#mq_prompt").textContent=`Round ${R.length+1}: how many of your ${draft.m.roundSize} pitches were strikes?`;
+  numGrid($("#mq_k"),draft.m.roundSize,k=>{R.push({t:draft.m.ptype,n:draft.m.roundSize,k});saveDraft();renderMQ();fillMoundFromRounds()});
+  $("#mq_rounds").innerHTML=R.map((r,i)=>`<span class="pill">R${i+1} ${r.t}: <b>${r.k}/${r.n}</b></span>`).join("");
+  const n=R.reduce((a,r)=>a+r.n,0),k=R.reduce((a,r)=>a+r.k,0);
+  statTiles($("#mq_live"),[["Rounds",R.length],["Pitches",n],["Strikes",k],["Strike %",fmtPct(pct(k,n))]]);
+}
+function fillMoundFromRounds(){const R=draft.m.rounds;if(!R.length){$("#m_pitches").value="";$("#m_strikes").value="";updBalls();return}
+  $("#m_pitches").value=R.reduce((a,r)=>a+r.n,0);$("#m_strikes").value=R.reduce((a,r)=>a+r.k,0);updBalls()}
+function renderCQ(){
+  const R=draft.c.rounds,n=draft.c.roundSize;
+  chips($("#cq_size"),[5,8,10,15,20],n,v=>{draft.c.roundSize=v;cqPend=null;saveDraft();renderCQ()});
+  if(cqPend==null){$("#cq_prompt").textContent=`Round ${R.length+1} (${n} swings): how many did you square up (hard, flush contact)?`;numGrid($("#cq_k"),n,h=>{cqPend=h;renderCQ()})}
+  else{$("#cq_prompt").textContent=`Round ${R.length+1}: how many were line drives?`;numGrid($("#cq_k"),n,l=>{R.push({n,h:cqPend,l});cqPend=null;saveDraft();renderCQ();fillCageFromRounds()})}
+  $("#cq_rounds").innerHTML=R.map((r,i)=>`<span class="pill">R${i+1}: <b>${r.h}</b> hard, <b>${r.l}</b> LD of ${r.n}</span>`).join("")+(cqPend!=null?`<span class="pill">R${R.length+1}: ${cqPend} hard...</span>`:"");
+  const sw=R.reduce((a,r)=>a+r.n,0),h=R.reduce((a,r)=>a+r.h,0),l=R.reduce((a,r)=>a+r.l,0);
+  statTiles($("#cq_live"),[["Swings",sw],["Squared up",fmtPct(pct(h,sw))],["Line drive",fmtPct(pct(l,sw))],["Rounds",R.length]]);
+}
+function fillCageFromRounds(){const R=draft.c.rounds;const set=(id,v)=>$(id).value=R.length?v:"";
+  set("#c_swings",R.reduce((a,r)=>a+r.n,0));set("#c_barrels",R.reduce((a,r)=>a+r.h,0));set("#c_ld",R.reduce((a,r)=>a+r.l,0))}
+// mode-aware undo / clear
+$("#m_undo").onclick=()=>{if(modes.m==="quick"){draft.m.rounds.pop();saveDraft();renderMQ();fillMoundFromRounds()}else{draft.m.pitches.pop();saveDraft();renderMoundCounter(true)}};
+$("#m_clear").onclick=()=>{if(!draft.m.pitches.length)return;confirmBox("Clear the pitch counter?","Clear",()=>{draft.m.pitches=[];saveDraft();renderMoundCounter(true)})};
+$("#c_undo").onclick=()=>{if(modes.c==="quick"){if(cqPend!=null)cqPend=null;else draft.c.rounds.pop();saveDraft();renderCQ();fillCageFromRounds()}else{draft.c.swings.pop();saveDraft();renderCageCounter(true)}};
+$("#c_clear").onclick=()=>{const q=modes.c==="quick";if(q?!draft.c.rounds.length:!draft.c.swings.length)return;confirmBox("Clear the swing counter?","Clear",()=>{if(q){draft.c.rounds=[];cqPend=null;renderCQ();fillCageFromRounds()}else{draft.c.swings=[];renderCageCounter(true)}saveDraft()})};
+const _initMound=initMound;initMound=function(){_initMound();renderMQ()};
+const _initCage=initCage;initCage=function(){_initCage();renderCQ()};
+applyModes();
+/* ---------------- RAPSODO UPLOAD ---------------- */
+const HARD_HIT_MPH=85;
+function csvRows(text){const rows=[];let row=[],cell="",q=false;text=String(text||"").replace(/^﻿/,"");
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++}else q=false}else cell+=ch}
+    else if(ch==='"')q=true;else if(ch===","){row.push(cell);cell=""}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cell);rows.push(row);row=[];cell=""}
+    else cell+=ch}
+  if(cell!==""||row.length){row.push(cell);rows.push(row)}return rows}
+function rpNum(v){v=String(v==null?"":v).trim();if(v===""||v==="-")return null;const n=+v;return isFinite(n)?n:null}
+const rpAvg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null, r1=v=>v==null?null:Math.round(v*10)/10, r0=v=>v==null?null:Math.round(v);
+function rpDate(s){const m=String(s||"").match(/([A-Z][a-z]{2})\s+(\d{1,2})\s+(\d{4})/);if(!m)return null;const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(m[1])+1;if(!mo)return null;return `${m[3]}-${String(mo).padStart(2,"0")}-${m[2].padStart(2,"0")}`}
+function rpPT(t){t=String(t).toLowerCase();if(/fast|seam|sinker/.test(t))return"FB";if(/curve/.test(t))return"CB";if(/slider|sweep/.test(t))return"SL";if(/change|split/.test(t))return"CH";if(/cut/.test(t))return"CT";return"OT"}
+function rpParse(text){
+  const rows=csvRows(text);let name="",hi=-1;
+  rows.forEach((r,i)=>{const a=(r[0]||"").trim();if(/^player name/i.test(a))name=(r[1]||"").trim();if(hi<0&&a==="No"&&r.length>5)hi=i});
+  if(hi<0)return{error:"This doesn't look like a Rapsodo export. In Rapsodo, export the session as CSV and try again."};
+  const hdr=rows[hi].map(h=>h.trim());
+  const objs=rows.slice(hi+1).filter(r=>r.length>=hdr.length-2&&r.some(c=>String(c).trim())).map(r=>{const o={};hdr.forEach((h,i)=>o[h]=r[i]);return o});
+  const kind=hdr.includes("Pitch Type")||hdr.includes("Pitch ID")?"pitching":(hdr.includes("ExitVelocity")?"hitting":null);
+  if(!kind)return{error:"This file isn't a Rapsodo pitching or hitting export."};
+  if(!objs.length)return{error:"The file has no pitches or swings in it."};
+  const groups={};objs.forEach(o=>{const d=rpDate(o.Date)||todayStr();(groups[d]=groups[d]||[]).push(o)});
+  return{name,kind,sessions:Object.keys(groups).sort().map(d=>kind==="pitching"?rpPitch(d,groups[d]):rpHit(d,groups[d]))}
+}
+function rpPitch(d,list){
+  const thrown=list.filter(o=>rpNum(o["Velocity"])!=null||((o["Pitch Type"]||"-").trim()!=="-"));
+  const zone=list.filter(o=>o["Is Strike"]==="Y"||o["Is Strike"]==="N"),strikes=zone.filter(o=>o["Is Strike"]==="Y").length;
+  const velos=thrown.map(o=>rpNum(o["Velocity"])).filter(v=>v!=null);
+  const groups={};thrown.forEach(o=>{const t=((o["Pitch Type"]||"-").trim()!=="-")?o["Pitch Type"].trim():"Untagged";(groups[t]=groups[t]||[]).push(o)});
+  const byType={},mix={};
+  Object.entries(groups).forEach(([t,a])=>{const g=f=>a.map(o=>rpNum(o[f])).filter(v=>v!=null);const v=g("Velocity");
+    byType[t]={n:a.length,velo:r1(rpAvg(v)),veloMax:v.length?Math.max(...v):null,spin:r0(rpAvg(g("Total Spin"))),eff:r0(rpAvg(g("Spin Efficiency (release)"))),vb:r1(rpAvg(g("VB (trajectory)"))),hb:r1(rpAvg(g("HB (trajectory)"))),relH:r1(rpAvg(g("Release Height"))),ext:r1(rpAvg(g("Release Extension (ft)")))};
+    if(t!=="Untagged"){const k=rpPT(t);mix[k]=mix[k]||{n:0,k:0};mix[k].n+=a.length;mix[k].k+=a.filter(o=>o["Is Strike"]==="Y").length}});
+  const fbName=Object.keys(byType).filter(t=>t!=="Untagged"&&rpPT(t)==="FB").sort((a,b)=>byType[b].n-byType[a].n)[0];const fb=fbName?byType[fbName]:null;
+  const exts=thrown.map(o=>rpNum(o["Release Extension (ft)"])).filter(v=>v!=null);
+  const ids=list.map(o=>String(o["Pitch ID"]||"")).filter(Boolean).sort();
+  const summary=Object.entries(byType).sort((a,b)=>b[1].n-a[1].n).map(([t,v])=>`${t} ${v.n}: ${fmt1(v.velo)} mph, ${v.spin??"-"} rpm, VB ${fmt1(v.vb)}, HB ${fmt1(v.hb)}`).join(" | ");
+  return{id:"rp-p-"+d+"-"+(ids[0]||uid()),type:"mound",date:d,kind:"Rapsodo bullpen",pitches:thrown.length,strikes,zone_n:zone.length,fpo:null,fps:null,mix,
+    vmax:velos.length?r1(Math.max(...velos)):null,vavg:r1(rpAvg(velos)),ltft:null,drills:{},arm:null,rpe:null,notes:"",
+    tech_source:"Rapsodo",fb_velo_avg:fb?fb.velo:null,fb_spin_avg:fb?fb.spin:null,fb_ivb:fb?fb.vb:null,fb_hb:fb?fb.hb:null,extension_avg:r1(rpAvg(exts)),tech_pitch_summary:summary,
+    tech:{kind:"pitching",rows:list.length,byType}}
+}
+function rpHit(d,list){
+  const contact=list.filter(o=>rpNum(o.ExitVelocity)!=null),ev=contact.map(o=>rpNum(o.ExitVelocity));
+  const withLA=contact.filter(o=>rpNum(o.LaunchAngle)!=null),la=withLA.map(o=>rpNum(o.LaunchAngle));
+  const dist=contact.map(o=>rpNum(o.Distance)).filter(v=>v!=null),pv=list.map(o=>rpNum(o.PitchBallVelocity)).filter(v=>v!=null);
+  let gb=0,ld=0,fb=0,pu=0;la.forEach(a=>{if(a<10)gb++;else if(a<25)ld++;else if(a<50)fb++;else pu++});
+  const bats=state.player.bats;let pull=null,mid=null,oppo=null;
+  if(bats==="R"||bats==="L"){pull=0;mid=0;oppo=0;withLA.forEach(o=>{const x=rpNum(o.ExitDirection);if(x==null)return;if(Math.abs(x)<=15)mid++;else if((x<0)===(bats==="R"))pull++;else oppo++})}
+  const ids=list.map(o=>String(o.HitID||"")).filter(Boolean).sort();
+  return{id:"rp-h-"+d+"-"+(ids[0]||uid()),type:"cage",date:d,kind:"Rapsodo session",swings:list.length,barrels:null,ld,gb,fb,pu,foul:null,miss:null,pull,mid,oppo,
+    evmax:ev.length?r1(Math.max(...ev)):null,evavg:r1(rpAvg(ev)),mph:r1(rpAvg(pv)),drills:{},notes:"",
+    tech_source:"Rapsodo",hard_hit_pct:ev.length?pct(ev.filter(v=>v>=HARD_HIT_MPH).length,ev.length):null,sweet_spot_pct:la.length?pct(la.filter(a=>a>=8&&a<=32).length,la.length):null,
+    la_avg:r1(rpAvg(la)),dist_max:dist.length?r0(Math.max(...dist)):null,
+    tech:{kind:"hitting",rows:list.length,contact:contact.length,pts:withLA.map(o=>[rpNum(o.LaunchAngle),rpNum(o.ExitVelocity)])}}
+}
+let rpPending=null;
+function rpRender(){const el=$("#rp_preview");if(!rpPending){el.innerHTML="";return}
+  if(rpPending.error){el.innerHTML=`<div class="note warn">${esc(rpPending.error)}</div>`;return}
+  const p=rpPending,mine=state.player.name||"";
+  const warn=p.name&&mine&&p.name.toLowerCase()!==mine.toLowerCase()?`<div class="note">This file is labeled for <b>${esc(p.name)}</b>. Only upload your own sessions.</div>`:"";
+  const dirNote=p.kind==="hitting"&&!(state.player.bats==="R"||state.player.bats==="L")?`<div class="small" style="margin:6px 0">Set Bats to R or L in the Me tab to get pull / middle / oppo from Rapsodo files.</div>`:"";
+  el.innerHTML=warn+dirNote+p.sessions.map((s,i)=>{const dup=state.sessions.some(x=>x.id===s.id);
+    const line=s.type==="mound"?[`${s.pitches} pitches`,s.zone_n?`${fmtPct(pct(s.strikes,s.zone_n))} strikes (${s.strikes}/${s.zone_n} with a zone reading)`:null,s.vmax?`${s.vmax} max velo`:null,s.fb_spin_avg?`FB spin ${s.fb_spin_avg}`:null].filter(Boolean).join(" · ")
+      :[`${s.swings} swings, ${s.tech.contact} tracked`,s.evavg!=null?`avg EV ${s.evavg}`:null,s.evmax!=null?`max EV ${s.evmax}`:null,s.la_avg!=null?`avg LA ${s.la_avg}°`:null,s.hard_hit_pct!=null?`hard-hit ${fmtPct(s.hard_hit_pct)}`:null].filter(Boolean).join(" · ");
+    return `<div class="hist"><div class="spread"><div><span class="tag ${s.type}">${s.type==="mound"?"PITCHING":"HITTING"}</span><span class="t">Rapsodo ${esc(dateLabel(s.date))}</span></div>${dup?'<span class="m">already saved, will update</span>':""}</div><div style="font-size:14px;margin-top:6px">${esc(line)}</div>${s.tech_pitch_summary?`<div class="m" style="margin-top:4px;white-space:pre-line">${esc(s.tech_pitch_summary.split(" | ").join("\n"))}</div>`:""}</div>`}).join("")+
+    (p.kind==="pitching"?`<label class="f" style="margin-top:8px">Arm feel after (optional, 1-10)<input type="number" inputmode="numeric" min="1" max="10" id="rp_arm"></label>`:"")+
+    `<label class="f" style="margin-top:8px">Notes (optional)<textarea id="rp_notes" placeholder="What you worked on"></textarea></label>
+    <div class="row" style="margin-top:10px"><button class="btn" id="rp_save">Save ${p.sessions.length>1?p.sessions.length+" sessions":"session"}</button><button class="btn light" id="rp_cancel">Cancel</button></div>`;
+  $("#rp_cancel").onclick=()=>{rpPending=null;$("#rp_file").value="";rpRender()};
+  $("#rp_save").onclick=()=>{
+    if(!state.player.name){toast("Add your name in the Me tab first");go("me");return}
+    const notes=($("#rp_notes").value||"").trim(),arm=$("#rp_arm")?num($("#rp_arm").value):null;
+    if(arm!=null&&(arm<1||arm>10)){toast("Arm feel is 1 to 10");return}
+    p.sessions.forEach(s=>{s.notes=notes;if(arm!=null)s.arm=arm;s.saved=new Date().toISOString();const i=state.sessions.findIndex(x=>x.id===s.id);if(i>=0){state.sessions[i]=s;if(state.synced)delete state.synced[s.id]}else state.sessions.push(s)});
+    save();syncSoon();toast(arm!=null&&arm<=4?"Saved. Arm feel 4 or lower: stop throwing today and tell Coach.":`Rapsodo ${p.kind} saved`);
+    rpPending=null;$("#rp_file").value="";rpRender();renderWeekNote();
+  };
+}
+$("#rp_file").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{rpPending=rpParse(rd.result)}catch(err){rpPending={error:"Couldn't read that file. Make sure it's the CSV export, not the PDF report."}}rpRender()};
+  rd.onerror=()=>{rpPending={error:"Couldn't open that file."};rpRender()};rd.readAsText(f)});
+function evlaChart(container,pts){
+  const W=340,H=200,L=34,R=10,T=10,B=28,x0=-20,x1=70;const evs=pts.map(p=>p[1]);let y0=Math.max(0,Math.floor((Math.min(...evs)-5)/10)*10),y1=Math.ceil((Math.max(...evs)+5)/10)*10;if(y1<=y0)y1=y0+10;
+  const x=v=>L+(Math.max(x0,Math.min(x1,v))-x0)/(x1-x0)*(W-L-R),y=v=>T+(1-(v-y0)/(y1-y0))*(H-T-B);
+  let g=`<rect x="${x(8)}" y="${T}" width="${x(32)-x(8)}" height="${H-T-B}" fill="#f2e6c4" opacity=".55"/>`;
+  [y0,(y0+y1)/2,y1].forEach(t=>g+=`<line x1="${L}" x2="${W-R}" y1="${y(t)}" y2="${y(t)}" stroke="#e6e9e6"/><text x="${L-6}" y="${y(t)+4}" font-size="10" fill="#7b857f" text-anchor="end">${Math.round(t)}</text>`);
+  [-20,0,20,40,60].forEach(t=>g+=`<text x="${x(t)}" y="${H-12}" font-size="10" fill="#7b857f" text-anchor="middle">${t}°</text>`);
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(y0)}" y2="${y(y0)}" stroke="#c9cec9"/><line x1="${x(HARD_HIT_MPH>y0?0:0)}" x2="${x(0)}" y1="${T}" y2="${H-B}" stroke="#e6e9e6"/>`;
+  if(HARD_HIT_MPH>y0&&HARD_HIT_MPH<y1)g+=`<line x1="${L}" x2="${W-R}" y1="${y(HARD_HIT_MPH)}" y2="${y(HARD_HIT_MPH)}" stroke="#b5841a" stroke-dasharray="4 3"/><text x="${W-R}" y="${y(HARD_HIT_MPH)-4}" font-size="9" fill="#7a5a10" text-anchor="end">${HARD_HIT_MPH} mph</text>`;
+  g+=pts.map(p=>`<circle cx="${x(p[0])}" cy="${y(p[1])}" r="4.5" fill="#b5841a" stroke="#fff" stroke-width="1.5"><title>${p[1]} mph, ${p[0]}°</title></circle>`).join("");
+  container.innerHTML=`<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Exit velo versus launch angle">${g}<text x="${(L+W-R)/2}" y="${H-1}" font-size="10" fill="#7b857f" text-anchor="middle">Launch angle</text></svg></div>`;
+}
 renderWho();initMound();initCage();initLift();syncSoon(1500);
 if(!state.player.name)setTimeout(()=>toast("Welcome! Add your name in the Me tab."),400);
 if(!storageOK){const n=document.createElement("div");n.className="note warn";n.textContent="This browser is not saving data (private mode?). Your log will be lost when you close it.";$("main").prepend(n)}
